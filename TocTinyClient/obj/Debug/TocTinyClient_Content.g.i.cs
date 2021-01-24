@@ -8,6 +8,6 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("toctinylogo.ico")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("firstfloor.modernui.dll")]
 
 

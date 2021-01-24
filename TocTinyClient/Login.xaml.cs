@@ -13,11 +13,10 @@ namespace TocTiny
     {
         public MainChat ChatWindow;
         private SocketClient selfClient;
-        private readonly string clientGuid;
         private readonly int bufferSize = 1048576;
 
         public string NickName => NickNameBox.Text;
-        public string ClientGuid => clientGuid;
+        public string ClientGuid { get; set; }
         public int BufferSize => bufferSize;
 
         public SocketClient SelfClient => selfClient;

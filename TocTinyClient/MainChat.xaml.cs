@@ -257,6 +257,9 @@ namespace TocTiny
                         AppendAnnouncement(recvPackage.Content);
                         App.Current.Dispatcher.Invoke(() => { ChatScroller.ScrollToBottom(); });
                         break;
+                    case ConstDef.Login:
+                        WindowParent.ClientGuid = recvPackage.Content;
+                        break;
                     default:
                         // ( 在规定之外的消息 ) 以后再弄详细处理
                         break;
@@ -312,7 +315,7 @@ namespace TocTiny
             try
             {
                 ms = new MemoryStream();
-                img.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
+                img.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
                 TransPackage msg = new TransPackage()
                 {
                     Name = WindowParent.NickName,
@@ -593,6 +596,10 @@ namespace TocTiny
                 {
                     imgForSending = System.Drawing.Image.FromFile(ofd.FileName);
                     SendImage(imgForSending);
+                }
+                catch
+                {
+                    MessageBox.Show("图片发送失败");
                 }
                 finally
                 {

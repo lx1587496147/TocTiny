@@ -4,15 +4,15 @@
 winexe
 C#
 .cs
-C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyClient\obj\Debug\
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyClient\obj\Release\
 TocTinyClient
 none
 false
-DEBUG;TRACE
+TRACE
 C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyClient\App.xaml
 5610046913
 
-18621525089
+17205915347
 15-607928583
 FrameHost.xaml;MainChat.xaml;Login.xaml;PictureView.xaml;TocErrorReport.xaml;
 

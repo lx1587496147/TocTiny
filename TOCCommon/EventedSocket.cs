@@ -115,7 +115,7 @@ namespace Null.Library.EventedSocket
                     RecvedClientMsg.Invoke(this, client, clientBufferPairs[client], size);
                 }
 
-                client.BeginReceive(clientBufferPairs[client], 0, 4096, SocketFlags.None, new AsyncCallback(ReceiveAction), ar.AsyncState);
+                client.BeginReceive(clientBufferPairs[client], 0, bufferSize, SocketFlags.None, new AsyncCallback(ReceiveAction), ar.AsyncState);
             }
         }
     }

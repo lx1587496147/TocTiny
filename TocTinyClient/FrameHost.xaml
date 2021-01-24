@@ -3,14 +3,21 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:TocTinyClient"
-        mc:Ignorable="d" WindowStyle="None" Template="{DynamicResource WindowTemplateKey}"
-        Title="FrameHost" Height="690" Width="1024" Background="White">
-    <Window.Effect>
-        <DropShadowEffect Color="#FFE0E0E0" BlurRadius="30" ShadowDepth="20"/>
-    </Window.Effect>
+        xmlns:local="clr-namespace:TocTinyClient" WindowStyle="None"
+        mc:Ignorable="d" AllowsTransparency="True" Background="White"
+        Height="690" Width="1024">
     <Grid>
-        <Button HorizontalAlignment="Left" Width="9" Height="10" VerticalAlignment="Top" Background="White" BorderBrush="{x:Null}" Foreground="{x:Null}" Click="Button_Click"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="18"/>
+            <RowDefinition Height="1*"/>
+        </Grid.RowDefinitions>
+        <Rectangle MouseLeftButtonDown="Grid_MouseLeftButtonDown" Grid.Row="0" Fill="#01FFFFFF" Margin="0,0,0,610" Grid.RowSpan="2"/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="-" Background="{x:Null}" Width="20" Click="Button_Click_1"/>
+            <Button Content="□" Background="{x:Null}" Width="20" Click="Button_Click_2"/>
+            <Button Content="×" Background="{x:Null}" Width="20" Click="Button_Click_3"/>
+        </StackPanel>
+        <Button HorizontalAlignment="Left" Width="9" Height="10" VerticalAlignment="Top" Background="#01FFFFFF" BorderBrush="{x:Null}" Foreground="{x:Null}" Click="Button_Click"/>
         <Frame x:Name="Frame" NavigationUIVisibility="Hidden" Grid.Row="1"/>
     </Grid>
 </Window>

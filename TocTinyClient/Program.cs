@@ -25,7 +25,12 @@ namespace TocTiny
         }
         internal static void Navigate(object page)
         {
-            (App.Current.MainWindow as FrameHost).Frame.Navigate(page);
+            GetMianWindow().Frame.Navigate(page);
+        }
+
+        public static FrameHost GetMianWindow()
+        {
+            return (App.Current.MainWindow as FrameHost);
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows.Media;
+using System.Windows;
 using System.Windows.Controls;
 using TocTiny;
 
@@ -13,7 +15,6 @@ namespace TocTinyClient
         {
             InitializeComponent();
         }
-
         private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             try
@@ -55,6 +56,16 @@ namespace TocTinyClient
         private void ScrollBar_ValueChanged_1(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             SV.ScrollToVerticalOffset(e.NewValue);
+        }
+
+        private void UserControl_Unloaded(object sender, RoutedEventArgs e)
+        {
+            Program.GetMianWindow().ClearValue(Window.BackgroundProperty);
+        }
+
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            Program.GetMianWindow().Background = Brushes.Transparent;
         }
     }
 }

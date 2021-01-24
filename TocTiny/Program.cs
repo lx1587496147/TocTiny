@@ -10,6 +10,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace TocTiny
 {
@@ -27,13 +28,14 @@ namespace TocTiny
         private static byte[] heartPackageData;
         private static bool nocolor, nocmd;
         private static readonly List<string> AdminGuid = new List<string>();
-        private static readonly string AdminGUIDHashcode = new Guid().ToString("D");
+        private static readonly string AdminGUIDHashcode = Guid.NewGuid().ToString();
         private static readonly List<User> UserList = new List<User>() { new User() { Name = "Admin", PasswordHash = "123456".GetHashCode(), Guid = AdminGUIDHashcode } };
         private static string USERJSONPATH = "Users.json";
+        private static object lockobj=new object();
         private class StartupArgs
         {
             public string PORT = "2020";           // port 
-            public string BUFFER = "1024576";      // buffer
+            public string BUFFER = "12345678";      // buffer
             public string BACKLOG = "50";          // backlog
             public string BTIMEOUT = "1000";       // buffer timeout : 缓冲区存活时间 (ms)
             public string CINTERVAL = "1000";      // cleaning interval : 内存清理间隔 (ms)
@@ -49,6 +51,14 @@ namespace TocTiny
         }
         private static Func<string, bool> SafeWriteHook;
         private static void SafeWriteLine(string content)
+        {
+            lock (lockobj)
+            {
+                Task.Run(() => RSafeWriteLine(content)).Wait();
+            }
+        }
+
+        private static void RSafeWriteLine(string content)
         {
             if (SafeWriteHook != null)
             {
@@ -77,22 +87,40 @@ namespace TocTiny
         {
             if (File.Exists(JsonPath))
             {
-                JsonData jsonData = JsonData.Parse(new StreamReader(JsonPath).ReadToEnd());
-                UserList.AddRange(jsonData.GetArray().Select((x, y) => JsonData.ConvertToInstance<User>(x)));
+                StreamReader streamReader = new StreamReader(JsonPath);
+                JsonData jsonData = JsonData.Parse(streamReader.ReadToEnd());
+                List<JsonData> lists = jsonData.GetArray();
+                foreach(JsonData jsonData1 in lists)
+                {
+                    UserList.Add(JsonData.ConvertToInstance<User>(jsonData1));
+                }
+                streamReader.BaseStream.Close();
+                streamReader.Close();
             }
             else
             {
                 JsonData jsonData = JsonData.CreateArray();
+                foreach (User usr in UserList)
+                {
+                    jsonData.Add(JsonData.Create(usr));
+                }
                 StreamWriter streamWriter = new StreamWriter(JsonPath, false);
                 streamWriter.Write(JsonData.ConvertToText(jsonData));
-                streamWriter.Close();
+                streamWriter.Flush();
+                streamWriter.BaseStream.Close();
             }
         }
         private static void SaveUser(string JsonPath)
         {
             JsonData jsonData = JsonData.CreateArray();
-            UserList.Select((x, y) => JsonData.Create(x)).Select((x, y) => { jsonData.Add(x); return 0; });
-            new StreamWriter(JsonPath, false).Write(JsonData.ConvertToText(jsonData));
+            foreach (User usr in UserList)
+            {
+                jsonData.Add(JsonData.Create(usr));
+            }
+            StreamWriter streamWriter = new StreamWriter(JsonPath, false);
+            streamWriter.Write(JsonData.ConvertToText(jsonData));
+            streamWriter.Flush();
+            streamWriter.BaseStream.Close();
         }
 
         private static void Initialize(string[] args)
@@ -164,7 +192,7 @@ namespace TocTiny
                             PackageType = ConstDef.HeartPackage
                         })));
 
-            new Thread(MemoryCleaningLoop).Start();                     // 开启内存循环清理线程
+            //new Thread(MemoryCleaningLoop).Start();                     // 开启内存循环清理线程
         }
 
         private static void Main(string[] args)
@@ -201,24 +229,6 @@ namespace TocTiny
             {
                 SafeWriteLine($"Start failed. check if the port {port} is being listened.");
                 Environment.Exit(-2);
-            }
-        }
-
-        private static void MemoryCleaningLoop()
-        {
-            while (true)
-            {
-                Thread.Sleep(cinterval);
-                lock (clients)
-                {
-                    foreach (Socket i in clients.Keys)
-                    {
-                        if (clients[i] != null && DateTime.Now - clientBufferWroteTime[i] > TimeSpan.FromMilliseconds(btimeout))
-                        {
-                            DisposePartsBuffer(i);
-                        }
-                    }
-                }
             }
         }
         private static void DisposePartsBuffer(Socket socket)
@@ -355,7 +365,13 @@ namespace TocTiny
                                 {
                                     TransPackage recvPackage = JsonData.ConvertToInstance<TransPackage>(dealJson);
                                     DealRecvPackage(recvPackage, ref socket, ref totalBuffer, totalBuffer.Length);
+                                    recvPackage = null;
                                 }
+                                jsons = null;
+                                clients[socket].Dispose();
+                                clients[socket] = null;
+                                totalBuffer = null;
+                                bufferStr = null;
                             }
                         }
                         catch { }
@@ -366,6 +382,8 @@ namespace TocTiny
 
                 Console.ForegroundColor = ConsoleColor.DarkGray;
                 SafeWriteLine($"Recieved data from {socket.RemoteEndPoint}, size: {size}, Wrote to PartsBuffer.");
+                buffer = null;
+                GC.Collect(2, GCCollectionMode.Forced, true, true);
             }
         }        // 当收到客户端消息
         private static void Server_ClientDisconnected(object sender, Socket socket)
@@ -576,12 +594,12 @@ namespace TocTiny
                                         }))));
                             int count = 0;
                             Socket socket1 = socket;
-                            SafeWriteHook = (a) =>
+                            bool p(string a)
                             {
                                 count += 1;
-                                if (count == 4)
+                                if (count == 2)
                                 {
-                                    SafeWriteHook = null;
+                                    SafeWriteHook -= p;
                                 }
                                 socket1.Send(
                                 Encoding.UTF8.GetBytes(
@@ -594,7 +612,8 @@ namespace TocTiny
                                             PackageType = ConstDef.NormalMessage
                                         }))));
                                 return true;
-                            };
+                            }
+                            SafeWriteHook += p;
                         }
                         break;
                     case ConstDef.ReportTerminalOutput:
@@ -617,13 +636,9 @@ namespace TocTiny
                             int count = 0;
                             int l = int.Parse(recvPackage.Content);
                             Socket socket1 = socket;
-                            SafeWriteHook = (a) =>
+                            bool p(string a)
                             {
                                 count += 1;
-                                if (count == l)
-                                {
-                                    SafeWriteHook = null;
-                                }
                                 socket1.Send(
                                 Encoding.UTF8.GetBytes(
                                     JsonData.ConvertToText(
@@ -635,7 +650,8 @@ namespace TocTiny
                                             PackageType = ConstDef.NormalMessage
                                         }))));
                                 return true;
-                            };
+                            }
+                            SafeWriteHook += p;
                         }
                         break;
                     default:
@@ -688,9 +704,10 @@ namespace TocTiny
             {
                 Name = recvPackage.Name,
                 PasswordHash = recvPackage.Content.GetHashCode(),
-                Guid = new Guid().ToString()
+                Guid = Guid.NewGuid().ToString()
             };
             UserList.Add(newuser);
+            SaveUser(USERJSONPATH);
             return newuser;
         }
 
