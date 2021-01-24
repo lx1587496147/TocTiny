@@ -174,7 +174,7 @@ namespace TocTiny
             SocketServer server = new SocketServer();
             try
             {
-                server.Start(port, backlog, bufferSize);
+                server.Start((ushort)port, backlog, bufferSize);
                 SafeWriteLine($"Server started. Port: {port}, Backlog: {backlog}, Buffer: {bufferSize}(B).");
                 server.ClientConnected += Server_ClientConnected;
                 server.ClientDisconnected += Server_ClientDisconnected;
@@ -319,7 +319,7 @@ namespace TocTiny
 
             BoardcastData(attentionData, attentionData.Length);
         }                   // 发送吸引注意力
-        private static void Server_RecvedClientMsg(Socket socket, byte[] buffer, int size)
+        private static void Server_RecvedClientMsg(object sender, Socket socket, byte[] buffer, int size)
         {
             try
             {
@@ -368,7 +368,7 @@ namespace TocTiny
                 SafeWriteLine($"Recieved data from {socket.RemoteEndPoint}, size: {size}, Wrote to PartsBuffer.");
             }
         }        // 当收到客户端消息
-        private static void Server_ClientDisconnected(Socket socket)
+        private static void Server_ClientDisconnected(object sender, Socket socket)
         {
             SafeWriteLine($"Removed a disconnected socket which address is {socket.RemoteEndPoint}");
 
@@ -377,7 +377,7 @@ namespace TocTiny
                 clients.Remove(socket);
             }
         }                              // 当客户端断开
-        private static void Server_ClientConnected(Socket socket)
+        private static void Server_ClientConnected(object sender,Socket socket)
         {
             SafeWriteLine($"News socket connected, address: {socket.RemoteEndPoint}");
 

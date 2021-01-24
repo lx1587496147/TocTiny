@@ -4,10 +4,13 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TocTinyClient"
-        mc:Ignorable="d"
-        Title="FrameHost" Height="650" Width="1024" Background="White">
+        mc:Ignorable="d" WindowStyle="None" Template="{DynamicResource WindowTemplateKey}"
+        Title="FrameHost" Height="690" Width="1024" Background="White">
+    <Window.Effect>
+        <DropShadowEffect Color="#FFE0E0E0" BlurRadius="30" ShadowDepth="20"/>
+    </Window.Effect>
     <Grid>
         <Button HorizontalAlignment="Left" Width="9" Height="10" VerticalAlignment="Top" Background="White" BorderBrush="{x:Null}" Foreground="{x:Null}" Click="Button_Click"/>
-        <Frame x:Name="Frame" NavigationUIVisibility="Hidden"/>
+        <Frame x:Name="Frame" NavigationUIVisibility="Hidden" Grid.Row="1"/>
     </Grid>
 </Window>
