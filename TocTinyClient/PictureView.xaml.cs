@@ -27,8 +27,8 @@ namespace TocTinyClient
                 SV.ScrollToVerticalOffset(SV.VerticalOffset + (-oldHeight + Picture.Height) / 2);
             }
             catch
-            { 
-            
+            {
+
             }
         }
 

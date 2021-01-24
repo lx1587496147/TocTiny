@@ -73,14 +73,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Localization\内置简体中文.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Localization\内置美国英语.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="MainChat.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -93,14 +85,9 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="CHO.Json.cs" />
-    <Compile Include="ConsArgsParser.cs" />
-    <Compile Include="EventedSocket.cs" />
     <Compile Include="FrameHost.xaml.cs">
       <DependentUpon>FrameHost.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Localization\Localization.cs" />
-    <Compile Include="Localization\LocalizationItem.cs" />
     <Compile Include="MainChat.xaml.cs">
       <DependentUpon>MainChat.xaml</DependentUpon>
     </Compile>
@@ -118,7 +105,6 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PackageDef.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
@@ -148,5 +134,6 @@
   <ItemGroup>
     <Resource Include="TocTinyLogo.ico" />
   </ItemGroup>
+  <Import Project="..\TOCCommon\TOCCommon.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

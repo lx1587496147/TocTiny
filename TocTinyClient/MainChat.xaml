@@ -89,8 +89,8 @@
                     <RowDefinition/>
                 </Grid.RowDefinitions>
                 <Border Grid.Row="0" HorizontalAlignment="Stretch" BorderBrush="#E8E8E8" BorderThickness="0,0,0,1">
-                    <Grid HorizontalAlignment="Left">
-                        <Grid.Resources>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                        <StackPanel.Resources>
                             <Style TargetType="Label">
                                 <Style.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
@@ -98,18 +98,15 @@
                                     </Trigger>
                                 </Style.Triggers>
                             </Style>
-                        </Grid.Resources>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition/>
-                            <ColumnDefinition/>
-                            <ColumnDefinition/>
-                            <ColumnDefinition/>
-                        </Grid.ColumnDefinitions>
-                        <Label Grid.Column="0" Padding="10,3" MouseDown="OpenSticker_MouseDown" Content="Kaomoji"/>
-                        <Label Grid.Column="1" Padding="10,3" MouseDown="SendPicture_MouseDown" Content="Picture"/>
-                        <Label Grid.Column="2" Padding="10,3" MouseDown="DrawAttention_MouseDown" Content="Attention"/>
-                        <Label Grid.Column="3" Padding="10,3" MouseDown="OnlineInfo_MouseDown" Content="OnlineInfo"/>
-                    </Grid>
+                        </StackPanel.Resources>
+                        <Label Padding="10,3" MouseDown="OpenSticker_MouseDown" Content="Kaomoji"/>
+                        <Label Padding="10,3" MouseDown="SendPicture_MouseDown" Content="Picture"/>
+                        <Label Padding="10,3" MouseDown="DrawAttention_MouseDown" Content="Attention"/>
+                        <Label Padding="10,3" MouseDown="OnlineInfo_MouseDown" Content="OnlineInfo"/>
+                        <Label Padding="10,3" Content="AdminTool" MouseDown="Label_MouseDown"/>
+                        <Label Padding="10,3" MouseDown="Label_MouseDown_1" Content="ServerInfo"/>
+                        
+                    </StackPanel>
                 </Border>
                 <TextBox Grid.Row="1" Name="InputBox" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" AllowDrop="True"
                              TextWrapping="Wrap" Padding="3" BorderThickness="0" Background="#F5F6F7" DragEnter="InputBox_DragEnter" Drop="InputBox_Drop"

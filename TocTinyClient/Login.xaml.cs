@@ -25,9 +25,8 @@ namespace TocTiny
         public Login()
         {
             InitializeComponent();
-            clientGuid = Guid.NewGuid().ToString();
             NickNameBox.Text = Environment.UserName;
-            AddressBox.Text = "chonet.xyz";
+            AddressBox.Text = "127.0.0.1";
             PortBox.Text = "2020";
         }
 

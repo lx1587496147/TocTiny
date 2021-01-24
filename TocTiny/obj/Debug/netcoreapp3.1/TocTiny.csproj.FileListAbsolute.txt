@@ -44,3 +44,9 @@ C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTiny\obj\Debug\netco
 C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTiny\obj\Debug\netcoreapp3.1\TocTiny.csproj.CoreCompileInputs.cache
 C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTiny\obj\Debug\netcoreapp3.1\TocTiny.dll
 C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTiny\obj\Debug\netcoreapp3.1\TocTiny.pdb
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTiny\bin\Debug\netcoreapp3.1\TocTiny.deps.json
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTiny\bin\Debug\netcoreapp3.1\TocTiny.runtimeconfig.json
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTiny\bin\Debug\netcoreapp3.1\TocTiny.runtimeconfig.dev.json
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTiny\bin\Debug\netcoreapp3.1\TocTiny.dll
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTiny\bin\Debug\netcoreapp3.1\TocTiny.pdb
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTiny\obj\Debug\netcoreapp3.1\TocTiny.genruntimeconfig.cache

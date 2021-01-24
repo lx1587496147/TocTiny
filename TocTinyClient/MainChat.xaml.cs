@@ -636,6 +636,40 @@ namespace TocTiny
                 }
             }
         }                                  // 输入框拖拽结束事件
+
+        /// <summary>
+        /// 管理员工具
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Label_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            TrySendPackage(new TransPackage()
+            {
+                Name = WindowParent.NickName,
+                ClientGuid = WindowParent.ClientGuid,
+                Content = InputBox.Text,
+                PackageType = ConstDef.AdminCommand
+            });
+            InputBox.Clear();
+        }
+        /// <summary>
+        /// 获取服务器信息
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Label_MouseDown_1(object sender, MouseButtonEventArgs e)
+        {
+            TrySendPackage(new TransPackage()
+            {
+                Name = WindowParent.NickName,
+                ClientGuid = WindowParent.ClientGuid,
+                Content = InputBox.Text,
+                PackageType = ConstDef.ReportTerminalOutput
+            });
+            InputBox.Clear();
+        }
+
         private void InputBox_OnPaste(object sender, DataObjectPastingEventArgs e)
         {
             if (e.DataObject.GetDataPresent(DataFormats.Bitmap))

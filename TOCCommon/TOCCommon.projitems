@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>bc02b253-0a64-4002-82c1-95c8490c5a79</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>TOCCommon</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CHO.Json.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConsArgsParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConsArgsSplitter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConsoleDynamicInput.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EventedSocket.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Linker.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PackageDef.cs" />
+  </ItemGroup>
+</Project>

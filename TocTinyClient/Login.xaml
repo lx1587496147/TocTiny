@@ -23,13 +23,21 @@
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
 
-            <Grid Grid.Row="0" Grid.ColumnSpan="2" VerticalAlignment="Center">
+            <Grid Grid.Row="0" VerticalAlignment="Center">
                 <Grid.RowDefinitions>
                     <RowDefinition/>
                     <RowDefinition/>
                 </Grid.RowDefinitions>
                 <Label Content="Nick name:" VerticalAlignment="Bottom"/>
-                <TextBox Name="NickNameBox" Grid.Row="1" TabIndex="1" Padding="5,0" VerticalContentAlignment="Center" HorizontalContentAlignment="Stretch" Height="35"></TextBox>
+                <TextBox Name="NickNameBox" Grid.Row="1" TabIndex="1" Padding="5,0" VerticalContentAlignment="Center" HorizontalContentAlignment="Stretch" Height="35" Margin="0,0,5,0"></TextBox>
+            </Grid>
+            <Grid Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" >
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Label Content="Password:" VerticalAlignment="Bottom"/>
+                <PasswordBox Name="PasswordNameBox" Grid.Row="1" TabIndex="1" Padding="5,0" VerticalContentAlignment="Center" HorizontalContentAlignment="Stretch" Height="35" Margin="5,0,0,0"></PasswordBox>
             </Grid>
             <Grid Grid.Row="1" Grid.Column="0" VerticalAlignment="Center">
                 <Grid.RowDefinitions>

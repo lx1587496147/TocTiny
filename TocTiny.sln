@@ -3,11 +3,18 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TocTiny", "TocTiny\TocTiny.csproj", "{5F0FCC42-0ED6-4FDD-A9FD-83A31B4AD946}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TocTiny", "TocTiny\TocTiny.csproj", "{5F0FCC42-0ED6-4FDD-A9FD-83A31B4AD946}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TocTinyClient", "TocTinyClient\TocTinyClient.csproj", "{9BBDF972-0E9A-4AB1-A386-17DDF328F46C}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "TOCCommon", "TOCCommon\TOCCommon.shproj", "{BC02B253-0A64-4002-82C1-95C8490C5A79}"
+EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		TOCCommon\TOCCommon.projitems*{5f0fcc42-0ed6-4fdd-a9fd-83a31b4ad946}*SharedItemsImports = 5
+		TOCCommon\TOCCommon.projitems*{9bbdf972-0e9a-4ab1-a386-17ddf328f46c}*SharedItemsImports = 4
+		TOCCommon\TOCCommon.projitems*{bc02b253-0a64-4002-82c1-95c8490c5a79}*SharedItemsImports = 13
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU

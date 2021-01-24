@@ -26,7 +26,10 @@ namespace TocTiny
         private static DynamicScanner scanner;
         private static byte[] heartPackageData;
         private static bool nocolor, nocmd;
-
+        private static readonly List<string> AdminGuid = new List<string>();
+        private static readonly string AdminGUIDHashcode = new Guid().ToString("D");
+        private static readonly List<User> UserList = new List<User>() { new User() { Name = "Admin", PasswordHash = "123456".GetHashCode(), Guid = AdminGUIDHashcode } };
+        private static string USERJSONPATH = "Users.json";
         private class StartupArgs
         {
             public string PORT = "2020";           // port 
@@ -35,14 +38,22 @@ namespace TocTiny
             public string BTIMEOUT = "1000";       // buffer timeout : 缓冲区存活时间 (ms)
             public string CINTERVAL = "1000";      // cleaning interval : 内存清理间隔 (ms)
 
+            public string ADMINGUID1 = AdminGUIDHashcode;         //管理员GUID1
+
             public string NAME = "TOC Tiny Chat Room";
 
-            public bool NOCOLOR = false;       // string color : 是否开启控制台的消息文本高亮
+            public string USERJSONPATH = "Users.json"; //指定用户JSON路径
+
+            public bool NOCOLOR = false;           // string color : 是否开启控制台的消息文本高亮
             public bool NOCMD = false;
         }
-
+        private static Func<string, bool> SafeWriteHook;
         private static void SafeWriteLine(string content)
         {
+            if (SafeWriteHook != null)
+            {
+                if (SafeWriteHook.Invoke(content) == false) { return; }
+            }
             if (scanner != null && scanner.IsInputting)
             {
                 scanner.ClearDisplayBuffer();
@@ -60,6 +71,28 @@ namespace TocTiny
         {
             SafeWriteLine("TOC Tiny : Server program for TOC Tiny\n\n  TocTiny[-Port port][-Buffer bufferSize][-Backlog backlog][/? | / Help]\n\n    port: Port number to be listened.Default value is 2020.\n    bufferSize: Buffer size for receive data. Default value is 1024576(B)\n    backlog    : Maximum length of the pending connections queue.Default value is 50.\n");
             Environment.Exit(0);
+        }
+
+        private static void InitializeUser(string JsonPath)
+        {
+            if (File.Exists(JsonPath))
+            {
+                JsonData jsonData = JsonData.Parse(new StreamReader(JsonPath).ReadToEnd());
+                UserList.AddRange(jsonData.GetArray().Select((x, y) => JsonData.ConvertToInstance<User>(x)));
+            }
+            else
+            {
+                JsonData jsonData = JsonData.CreateArray();
+                StreamWriter streamWriter = new StreamWriter(JsonPath, false);
+                streamWriter.Write(JsonData.ConvertToText(jsonData));
+                streamWriter.Close();
+            }
+        }
+        private static void SaveUser(string JsonPath)
+        {
+            JsonData jsonData = JsonData.CreateArray();
+            UserList.Select((x, y) => JsonData.Create(x)).Select((x, y) => { jsonData.Add(x); return 0; });
+            new StreamWriter(JsonPath, false).Write(JsonData.ConvertToText(jsonData));
         }
 
         private static void Initialize(string[] args)
@@ -108,12 +141,17 @@ namespace TocTiny
 
             nocolor = startupArgs.NOCOLOR;
             nocmd = startupArgs.NOCMD;
+            USERJSONPATH = startupArgs.USERJSONPATH;
 
             port = (int)uport;
             bufferSize = (int)ubuffer;
             backlog = (int)ubacklog;
             btimeout = (int)ubtimeout;
             cinterval = (int)ucinterval;
+
+            AdminGuid.Add(startupArgs.ADMINGUID1);
+
+            InitializeUser(USERJSONPATH);
 
             heartPackageData = Encoding.UTF8.GetBytes(
                 JsonData.ConvertToText(
@@ -370,6 +408,91 @@ namespace TocTiny
         {
             if (recvPackage.PackageType != ConstDef.HeartPackage)
             {
+                if (string.IsNullOrWhiteSpace(recvPackage.ClientGuid))
+                {
+                    if (recvPackage.PackageType == ConstDef.NormalMessage)
+                    {
+                        string[] args = recvPackage.Content.Split(' ');
+                        if (args.Length == 2)
+                        {
+                            switch (args[0])
+                            {
+                                case "/login":
+                                    recvPackage.PackageType = ConstDef.Login;
+                                    recvPackage.Content = args[1];
+                                    break;
+                                case "/register":
+                                    recvPackage.PackageType = ConstDef.Register;
+                                    recvPackage.Content = args[1];
+                                    break;
+                                default:
+                                    SendMustLoginInfo(socket);
+                                    return;
+                            }
+                        }
+                        else
+                        {
+                            SendMustLoginInfo(socket);
+                            return;
+                        }
+                    }
+                    User user = UserList.Find((u) => u.Name == recvPackage.Name);
+                    switch (recvPackage.PackageType)
+                    {
+                        case ConstDef.Login:
+                            if (user != null)
+                            {
+                                if (user.PasswordHash == recvPackage.Content.GetHashCode())
+                                {
+                                    socket.Send(
+                                        Encoding.UTF8.GetBytes(
+                                            JsonData.ConvertToText(
+                                                JsonData.Create(new TransPackage()
+                                                {
+                                                    Name = "Server",
+                                                    Content = user.Guid,
+                                                    ClientGuid = "Server",
+                                                    PackageType = ConstDef.Login
+                                                }))));
+                                    WelcomeUser(recvPackage, socket);
+                                }
+                                else
+                                {
+                                    SendErrorPasswordNotCorrent(socket);
+                                }
+                            }
+                            else
+                            {
+                                SendErrorUserDoesntExist(socket);
+                            }
+                            break;
+                        case ConstDef.Register:
+                            if (user == null)
+                            {
+                                User newuser = CreateUser(recvPackage);
+                                socket.Send(
+                                    Encoding.UTF8.GetBytes(
+                                        JsonData.ConvertToText(
+                                            JsonData.Create(new TransPackage()
+                                            {
+                                                Name = "Server",
+                                                Content = newuser.Guid,
+                                                ClientGuid = "Server",
+                                                PackageType = ConstDef.Login
+                                            }))));
+                                WelcomeUser(recvPackage, socket);
+                            }
+                            else
+                            {
+                                SendErrorUserExisted(socket);
+                            }
+                            break;
+                        default:
+                            SendMustLoginInfo(socket);
+                            return;
+                    }
+                    return;
+                }
                 switch (recvPackage.PackageType)
                 {
                     case ConstDef.NormalMessage:
@@ -394,12 +517,6 @@ namespace TocTiny
                         DrawAttention(recvPackage.Name, recvPackage.ClientGuid);
                         Console.ForegroundColor = ConsoleColor.Yellow;
                         SafeWriteLine($"Draw Attention: Sender: {recvPackage.Name}");
-                        break;
-                    case ConstDef.HeartPackage:
-                        TrySendData(socket, heartPackageData, heartPackageData.Length, true);
-                        Console.ForegroundColor = ConsoleColor.DarkGray;
-                        SafeWriteLine($"Heart Beat: Sender: {recvPackage.Name}");
-                        socket.Send(heartPackageData);
                         break;
                     case ConstDef.ChangeChannelName:
                         socket.Send(
@@ -429,6 +546,98 @@ namespace TocTiny
                         Console.ForegroundColor = ConsoleColor.DarkGray;
                         SafeWriteLine($"Online Info Req: Sender: {recvPackage.Name}");
                         break;
+                    case ConstDef.AdminCommand:
+                        SafeWriteLine($"{recvPackage.Name} try to execute a command on this server.");
+                        if (!AdminGuid.Contains(recvPackage.ClientGuid))
+                        {
+                            socket.Send(
+                                Encoding.UTF8.GetBytes(
+                                    JsonData.ConvertToText(
+                                        JsonData.Create(new TransPackage()
+                                        {
+                                            Name = "Server",
+                                            Content = $"You don't have right to execute command on remote server.",
+                                            ClientGuid = "Server",
+                                            PackageType = ConstDef.NormalMessage
+                                        }))));
+                        }
+                        else
+                        {
+                            DealCommand(recvPackage.Content);
+                            socket.Send(
+                                Encoding.UTF8.GetBytes(
+                                    JsonData.ConvertToText(
+                                        JsonData.Create(new TransPackage()
+                                        {
+                                            Name = "Server",
+                                            Content = $"Command executed!",
+                                            ClientGuid = "Server",
+                                            PackageType = ConstDef.NormalMessage
+                                        }))));
+                            int count = 0;
+                            Socket socket1 = socket;
+                            SafeWriteHook = (a) =>
+                            {
+                                count += 1;
+                                if (count == 4)
+                                {
+                                    SafeWriteHook = null;
+                                }
+                                socket1.Send(
+                                Encoding.UTF8.GetBytes(
+                                    JsonData.ConvertToText(
+                                        JsonData.Create(new TransPackage()
+                                        {
+                                            Name = "Server",
+                                            Content = $"Return:{a}",
+                                            ClientGuid = "Server",
+                                            PackageType = ConstDef.NormalMessage
+                                        }))));
+                                return true;
+                            };
+                        }
+                        break;
+                    case ConstDef.ReportTerminalOutput:
+                        SafeWriteLine($"{recvPackage.Name} try to hook terminal on this server.");
+                        if (!AdminGuid.Contains(recvPackage.ClientGuid))
+                        {
+                            socket.Send(
+                                Encoding.UTF8.GetBytes(
+                                    JsonData.ConvertToText(
+                                        JsonData.Create(new TransPackage()
+                                        {
+                                            Name = "Server",
+                                            Content = $"You don't have right to hook terminal on remote server.",
+                                            ClientGuid = "Server",
+                                            PackageType = ConstDef.NormalMessage
+                                        }))));
+                        }
+                        else
+                        {
+                            int count = 0;
+                            int l = int.Parse(recvPackage.Content);
+                            Socket socket1 = socket;
+                            SafeWriteHook = (a) =>
+                            {
+                                count += 1;
+                                if (count == l)
+                                {
+                                    SafeWriteHook = null;
+                                }
+                                socket1.Send(
+                                Encoding.UTF8.GetBytes(
+                                    JsonData.ConvertToText(
+                                        JsonData.Create(new TransPackage()
+                                        {
+                                            Name = "Server",
+                                            Content = $"Return:{a}",
+                                            ClientGuid = "Server",
+                                            PackageType = ConstDef.NormalMessage
+                                        }))));
+                                return true;
+                            };
+                        }
+                        break;
                     default:
                         SafeWriteLine($"Recieved data from {socket.RemoteEndPoint}, size: {size}, but cannot be processed.");
                         break;
@@ -440,6 +649,100 @@ namespace TocTiny
                 }
             }
         }      // 处理消息 (主函数
+
+        private static void SendErrorPasswordNotCorrent(Socket socket)
+        {
+            socket.Send(
+                Encoding.UTF8.GetBytes(
+                    JsonData.ConvertToText(
+                        JsonData.Create(new TransPackage()
+                        {
+                            Name = "Server",
+                            Content = $"Password error.",
+                            ClientGuid = "Server",
+                            PackageType = ConstDef.NormalMessage
+                        }))));
+        }
+
+        private static void SendErrorUserDoesntExist(Socket socket)
+        {
+            socket.Send(
+                Encoding.UTF8.GetBytes(
+                    JsonData.ConvertToText(
+                        JsonData.Create(new TransPackage()
+                        {
+                            Name = "Server",
+                            Content = $"Error:This user doesn't exist.",
+                            ClientGuid = "Server",
+                            PackageType = ConstDef.NormalMessage
+                        }
+                        )
+                        )
+                    )
+                );
+        }
+
+        private static User CreateUser(TransPackage recvPackage)
+        {
+            User newuser = new User
+            {
+                Name = recvPackage.Name,
+                PasswordHash = recvPackage.Content.GetHashCode(),
+                Guid = new Guid().ToString()
+            };
+            UserList.Add(newuser);
+            return newuser;
+        }
+
+        private static void WelcomeUser(TransPackage recvPackage, Socket socket)
+        {
+            socket.Send(
+                Encoding.UTF8.GetBytes(
+                    JsonData.ConvertToText(
+                        JsonData.Create(new TransPackage()
+                        {
+                            Name = "Server",
+                            Content = $"Welcome!{recvPackage.Name}",
+                            ClientGuid = "Server",
+                            PackageType = ConstDef.NormalMessage
+                        }))));
+        }
+
+        private static void SendErrorUserExisted(Socket socket)
+        {
+            socket.Send(
+                Encoding.UTF8.GetBytes(
+                    JsonData.ConvertToText(
+                        JsonData.Create(new TransPackage()
+                        {
+                            Name = "Server",
+                            Content = $"Error:This user name existed.",
+                            ClientGuid = "Server",
+                            PackageType = ConstDef.NormalMessage
+                        }
+                        )
+                        )
+                    )
+                );
+        }
+
+        private static void SendMustLoginInfo(Socket socket)
+        {
+            socket.Send(
+                    Encoding.UTF8.GetBytes(
+                        JsonData.ConvertToText(
+                            JsonData.Create(new TransPackage()
+                            {
+                                Name = "Server",
+                                Content = $"You must be logged in to send messages on the remote server.\r\n" +
+                                $"If you were using old TocTiny,\r\n" +
+                                $"you can try to send \"/login (password here)\"\r\n" +
+                                $"or \"/register (password here)\"",
+                                ClientGuid = "Server",
+                                PackageType = ConstDef.NormalMessage
+                            }))));
+        }
+
         private static TransPackage CreateChangeChannelPackage(string channelName)
         {
             return new TransPackage()
