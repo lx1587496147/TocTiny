@@ -76,6 +76,3 @@ C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyClient\obj\Debug
 C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyClient\obj\Debug\TocErrorReport.baml
 C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyClient\obj\Debug\PictureView.g.cs
 C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyClient\obj\Debug\PictureView.baml
-C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyClient\bin\Debug\FirstFloor.ModernUI.dll
-C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyClient\bin\Debug\FirstFloor.ModernUI.xml
-C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyClient\obj\Debug\TocTinyClient.csproj.CopyComplete
