@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Media;
+using Microsoft.Expression.Media.Effects;
 
 namespace TocTinyClient
 {
@@ -9,16 +11,7 @@ namespace TocTinyClient
     /// </summary>
     public partial class FrameHost
     {
-        [DllImport("user32.dll")]
-        public static extern int SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
-        protected override void OnSourceInitialized(EventArgs e)
-        {
-            IntPtr hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
-            SendMessage(hwnd, 0x7F, new IntPtr(1), IntPtr.Zero);
-            SendMessage(hwnd, 0x7F, IntPtr.Zero, IntPtr.Zero);
-            base.OnSourceInitialized(e); 
-        }
-    public FrameHost()
+        public FrameHost()
         {
             InitializeComponent();
         }
@@ -45,6 +38,32 @@ namespace TocTinyClient
         private void Button_Click_3(object sender, RoutedEventArgs e)
         {
             Close();
+        }
+
+        private void Frame_Navigating(object sender, System.Windows.Navigation.NavigatingCancelEventArgs e)
+        {
+            
+            if (e.Content is FrameworkElement)
+            {
+                Theme.ThemeSwitcher.SwitchTheme(Theme.ThemeEnum.AERO, (FrameworkElement)e.Content);
+            }
+        }
+
+        private void Window_Activated(object sender, EventArgs e)
+        {
+            TabCtl.Effect = null;
+            Tab.Background = SystemParameters.WindowGlassBrush;
+            MianBorder.BorderBrush = SystemParameters.WindowGlassBrush;
+        }
+        private MonochromeEffect monochromeEffect = new MonochromeEffect
+        {
+            Color = Color.FromArgb(255, 99, 99, 99)
+        };
+        private void Window_Deactivated(object sender, EventArgs e)
+        {
+            TabCtl.Effect = monochromeEffect;
+            Tab.Background = Brushes.White;
+            MianBorder.BorderBrush =new SolidColorBrush( monochromeEffect.Color);
         }
     }
 }

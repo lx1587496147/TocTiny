@@ -8,6 +8,6 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("firstfloor.modernui.dll")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("ui/uimask1.tif")]
 
 

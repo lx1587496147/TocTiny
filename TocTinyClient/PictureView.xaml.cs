@@ -60,12 +60,12 @@ namespace TocTinyClient
 
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
-            Program.GetMianWindow().ClearValue(Window.BackgroundProperty);
+            Program.GetMianWindow().MianBorder.Background = Brushes.White;
         }
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            Program.GetMianWindow().Background = Brushes.Transparent;
+            Program.GetMianWindow().MianBorder.Background = Brushes.Transparent;
         }
     }
 }

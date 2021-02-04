@@ -22,7 +22,7 @@ namespace TocTiny
     {
         public readonly SocketClient SelfClient;
         public readonly Login WindowParent;
-        private readonly byte[] heartPackageData;
+        private readonly byte[] heartPackageData = new byte[] { };
         private readonly byte[] getOnlineInfoPackageData;
 
         private bool forceClose = false;
@@ -31,8 +31,6 @@ namespace TocTiny
         private readonly int btimeout = 1000, cinterval = 1000;
         private DateTime wroteTime;
 
-        private MemoryStream partsBuffer;
-
         public MainChat(Login loginWindow)
         {
             InitializeComponent();
@@ -40,19 +38,9 @@ namespace TocTiny
             WindowParent = loginWindow;
             SelfClient = loginWindow.SelfClient;
 
-            heartPackageData = Encoding.UTF8.GetBytes(
-                JsonData.ConvertToText(
-                    JsonData.Create(new TransPackage()
-                    {
-                        Name = WindowParent.NickName,
-                        Content = null,
-                        ClientGuid = WindowParent.ClientGuid,
-                        PackageType = ConstDef.HeartPackage
-                    })));
-
             getOnlineInfoPackageData = Encoding.UTF8.GetBytes(
-                JsonData.ConvertToText(
-                    JsonData.Create(new TransPackage()
+                JsonSerializer.ConvertToText(
+                    JsonSerializer.Create(new TransPackage()
                     {
                         Name = WindowParent.NickName,
                         Content = null,
@@ -81,9 +69,9 @@ namespace TocTiny
         {
             try
             {
-                while (SelfClient.Connected)
+                while (true)
                 {
-                    SelfClient.SocketToServer.Send(heartPackageData);
+                    SelfClient.SendDirect(heartPackageData);
                     Thread.Sleep(120000);
                 }
             }
@@ -264,17 +252,12 @@ namespace TocTiny
                         // ( 在规定之外的消息 ) 以后再弄详细处理
                         break;
                 }
-
-                if (partsBuffer != null)
-                {
-                    DisposePartsBuffer();
-                }
             }
         }
         private bool TrySendPackage(TransPackage package)
         {
-            JsonData jsonToSend = JsonData.Create(package);
-            string textToSend = JsonData.ConvertToText(jsonToSend);
+            JsonData jsonToSend = JsonSerializer.Create(package);
+            string textToSend = JsonSerializer.ConvertToText(jsonToSend);
             byte[] bytesToSend = Encoding.UTF8.GetBytes(textToSend);
             return TrySendData(bytesToSend);
         }
@@ -284,7 +267,7 @@ namespace TocTiny
             {
                 if (data.Length <= WindowParent.BufferSize)
                 {
-                    SelfClient.SocketToServer.Send(data);
+                    SelfClient.Send(data);
                     return true;
                 }
                 else
@@ -425,33 +408,17 @@ namespace TocTiny
         #endregion
 
         #region Socket Core
-        private void MemoryCleaningLoop()
-        {
-            while (true)
-            {
-                Thread.Sleep(cinterval);
-                if (partsBuffer != null && DateTime.Now - wroteTime > TimeSpan.FromMilliseconds(btimeout))
-                {
-                    //DisposePartsBuffer();
-                }
-            }
-        }
-        private void DisposePartsBuffer()
-        {
-            partsBuffer.Dispose();
-            partsBuffer = null;
-        }
         public void SelfClient_ReceivedMsg(object sender, System.Net.Sockets.Socket socket, byte[] buffer, int size)
         {
             MainChat sender1 = (MainChat)((SocketClient)sender).Tag;
             try
             {
                 string recvText = Encoding.UTF8.GetString(buffer, 0, size);
-                JsonData[] recvJsons = JsonData.ParseStream(recvText);
+                JsonData[] recvJsons = JsonSerializer.ParseStream(recvText);
 
                 foreach (JsonData per in recvJsons)
                 {
-                    TransPackage recvPackage = JsonData.ConvertToInstance<TransPackage>(per);
+                    TransPackage recvPackage = JsonSerializer.ConvertToInstance<TransPackage>(per);
                     sender1.DealPackage(recvPackage);
                 }
 
@@ -459,33 +426,7 @@ namespace TocTiny
             }
             catch
             {
-                if (partsBuffer == null)
-                {
-                    partsBuffer = new MemoryStream();
-                    partsBuffer.Write(buffer, 0, size);
-                }
-                else
-                {
-                    partsBuffer.Write(buffer, 0, size);
-
-                    try
-                    {
-                        string bufferStr = Encoding.UTF8.GetString(partsBuffer.ToArray());
-                        if (JsonData.TryParseStream(bufferStr, out JsonData[] jsons))
-                        {
-                            foreach (JsonData per in jsons)
-                            {
-                                TransPackage perPackage = JsonData.ConvertToInstance<TransPackage>(per);
-                                sender1.DealPackage(perPackage);
-                            }
-                        }
-                    }
-                    catch { }
-                }
-
-                wroteTime = DateTime.Now;
-
-                //MessageBox.Show("Received wrong data which can't be decoded.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Received wrong data which can't be decoded.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         public void SelfClient_Disconnected(object sender, System.Net.Sockets.Socket socket)
@@ -574,7 +515,7 @@ namespace TocTiny
         private void OnlineInfo_MouseDown(object sender, MouseButtonEventArgs e)
         {
             TrySendData(getOnlineInfoPackageData);
-        }                    // 
+        }
 
         private OpenFileDialog ofd;
         private void SendPicture_MouseDown(object sender, MouseButtonEventArgs e)

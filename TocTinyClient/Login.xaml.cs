@@ -11,7 +11,6 @@ namespace TocTiny
     /// </summary>
     public partial class Login
     {
-        public MainChat ChatWindow;
         private SocketClient selfClient;
         private readonly int bufferSize = 1048576;
 
@@ -49,8 +48,8 @@ namespace TocTiny
                     MainChat page = new MainChat(this);
                     selfClient.Tag = page;
                     SelfClient.ConnectTo(new IPEndPoint(param.IPAddress, param.Port), param.BufferSize);
-                    SelfClient.ReceivedMsg += ChatWindow.SelfClient_ReceivedMsg;
-                    SelfClient.Disconnected += ChatWindow.SelfClient_Disconnected;
+                    SelfClient.ReceivedMsg += page.SelfClient_ReceivedMsg;
+                    SelfClient.Disconnected += page.SelfClient_Disconnected;
                     Program.Navigate(page);
                 });
             }
@@ -88,7 +87,6 @@ namespace TocTiny
             if (loginThread == null || !loginThread.IsAlive)
             {
                 selfClient = new SocketClient();
-                ChatWindow = new MainChat(this);
 
                 if (int.TryParse(PortBox.Text, out int port))
                 {

@@ -17,19 +17,16 @@ namespace TocTiny
     internal class Program
     {
         private static string channelName;
-        private static readonly Dictionary<Socket, MemoryStream> clients = new Dictionary<Socket, MemoryStream>();        // 客户端以及 部分包的缓冲区 DateTime是上一次将内容写入到缓冲区的时间.
-        private static readonly Dictionary<Socket, DateTime> clientBufferWroteTime = new Dictionary<Socket, DateTime>();  //
+        private static readonly List<Socket> clients = new List<Socket>();        // 客户端们
         private static readonly List<Socket> clientToRemove = new List<Socket>();
         private static readonly List<byte[]> lastMessages = new List<byte[]>();
-        private static readonly Dictionary<string, (string, Socket)> clientRecord = new Dictionary<string, (string, Socket)>();         // guid : (name, socket)
+        private static readonly Dictionary<string, (string, Socket)> clientRecord = new Dictionary<string, (string, Socket)>();         // guid为xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
         private static readonly int maxSaveCount = 15;
         private static int port, bufferSize, backlog, btimeout, cinterval;
         private static DynamicScanner scanner;
-        private static byte[] heartPackageData;
         private static bool nocolor, nocmd;
         private static readonly List<string> AdminGuid = new List<string>();
-        private static readonly string AdminGUIDHashcode = Guid.NewGuid().ToString();
-        private static readonly List<User> UserList = new List<User>() { new User() { Name = "Admin", PasswordHash = "123456".GetHashCode(), Guid = AdminGUIDHashcode } };
+        private static readonly List<User> UserList = new List<User>();
         private static string USERJSONPATH = "Users.json";
         private static object lockobj=new object();
         private class StartupArgs
@@ -39,8 +36,6 @@ namespace TocTiny
             public string BACKLOG = "50";          // backlog
             public string BTIMEOUT = "1000";       // buffer timeout : 缓冲区存活时间 (ms)
             public string CINTERVAL = "1000";      // cleaning interval : 内存清理间隔 (ms)
-
-            public string ADMINGUID1 = AdminGUIDHashcode;         //管理员GUID1
 
             public string NAME = "TOC Tiny Chat Room";
 
@@ -88,37 +83,36 @@ namespace TocTiny
             if (File.Exists(JsonPath))
             {
                 StreamReader streamReader = new StreamReader(JsonPath);
-                JsonData jsonData = JsonData.Parse(streamReader.ReadToEnd());
-                List<JsonData> lists = jsonData.GetArray();
-                foreach(JsonData jsonData1 in lists)
+                JsonData jsonData = JsonSerializer.Parse(streamReader.ReadToEnd());
+                foreach(JsonData jsonData1 in jsonData)
                 {
-                    UserList.Add(JsonData.ConvertToInstance<User>(jsonData1));
+                    UserList.Add(JsonSerializer.ConvertToInstance<User>(jsonData1));
                 }
                 streamReader.BaseStream.Close();
                 streamReader.Close();
             }
             else
             {
-                JsonData jsonData = JsonData.CreateArray();
+                JsonData jsonData = new JsonData() { DataType = JsonDataType.Array ,content =new List<JsonData>() };
                 foreach (User usr in UserList)
                 {
-                    jsonData.Add(JsonData.Create(usr));
+                    jsonData.Add(JsonSerializer.Create(usr));
                 }
                 StreamWriter streamWriter = new StreamWriter(JsonPath, false);
-                streamWriter.Write(JsonData.ConvertToText(jsonData));
+                streamWriter.Write(JsonSerializer.ConvertToText(jsonData));
                 streamWriter.Flush();
                 streamWriter.BaseStream.Close();
             }
         }
         private static void SaveUser(string JsonPath)
         {
-            JsonData jsonData = JsonData.CreateArray();
+            JsonData jsonData = new JsonData() { DataType = JsonDataType.Array, content = new List<JsonData>() };
             foreach (User usr in UserList)
             {
-                jsonData.Add(JsonData.Create(usr));
+                jsonData.Add(JsonSerializer.Create(usr));
             }
             StreamWriter streamWriter = new StreamWriter(JsonPath, false);
-            streamWriter.Write(JsonData.ConvertToText(jsonData));
+            streamWriter.Write(JsonSerializer.ConvertToText(jsonData));
             streamWriter.Flush();
             streamWriter.BaseStream.Close();
         }
@@ -177,20 +171,7 @@ namespace TocTiny
             btimeout = (int)ubtimeout;
             cinterval = (int)ucinterval;
 
-            AdminGuid.Add(startupArgs.ADMINGUID1);
-
             InitializeUser(USERJSONPATH);
-
-            heartPackageData = Encoding.UTF8.GetBytes(
-                JsonData.ConvertToText(
-                    JsonData.Create(
-                        new TransPackage()
-                        {
-                            Name = "Server",
-                            Content = null,
-                            ClientGuid = "Server",
-                            PackageType = ConstDef.HeartPackage
-                        })));
 
             //new Thread(MemoryCleaningLoop).Start();                     // 开启内存循环清理线程
         }
@@ -233,8 +214,6 @@ namespace TocTiny
         }
         private static void DisposePartsBuffer(Socket socket)
         {
-            clients[socket].Dispose();
-            clients[socket] = null;
             Console.ForegroundColor = ConsoleColor.DarkGray;
             SafeWriteLine($"PartsBuffer Disposed: {socket.RemoteEndPoint}");
         }
@@ -259,8 +238,8 @@ namespace TocTiny
         }                                               // 解释指令
         private static void BoardcastPackage(TransPackage package)
         {
-            JsonData jsonData = JsonData.Create(package);
-            string jsonText = JsonData.ConvertToText(jsonData);
+            JsonData jsonData = JsonSerializer.Create(package);
+            string jsonText = JsonSerializer.ConvertToText(jsonData);
             byte[] bytes = Encoding.UTF8.GetBytes(jsonText);
             BoardcastData(bytes, bytes.Length);
         }                                // 广播包
@@ -270,7 +249,7 @@ namespace TocTiny
             {
                 if (size <= bufferSize)
                 {
-                    socket.Send(data, size, SocketFlags.None);
+                    socket.SendTOC(data);
                     return true;
                 }
                 else
@@ -292,11 +271,11 @@ namespace TocTiny
         }    // 尝试发送数据
         private static void BoardcastData(byte[] data, int size)
         {
-            foreach (Socket i in clients.Keys)
+            foreach (Socket i in clients)
             {
                 try
                 {
-                    i.Send(data, size, SocketFlags.None);
+                    i.SendTOC(data);
                 }
                 catch
                 {
@@ -318,8 +297,8 @@ namespace TocTiny
         private static void DrawAttention(string senderName, string senderGuid)
         {
             byte[] attentionData = Encoding.UTF8.GetBytes(
-                JsonData.ConvertToText(
-                    JsonData.Create(new TransPackage()
+                JsonSerializer.ConvertToText(
+                    JsonSerializer.Create(new TransPackage()
                     {
                         Name = senderName,
                         Content = null,
@@ -331,60 +310,13 @@ namespace TocTiny
         }                   // 发送吸引注意力
         private static void Server_RecvedClientMsg(object sender, Socket socket, byte[] buffer, int size)
         {
-            try
-            {
                 string recvStr = Encoding.UTF8.GetString(buffer, 0, size);
-                JsonData[] recvJsons = JsonData.ParseStream(recvStr);
+                JsonData[] recvJsons = JsonSerializer.ParseStream(recvStr);
                 foreach (JsonData recvJson in recvJsons)
                 {
-                    TransPackage recvPackage = JsonData.ConvertToInstance<TransPackage>(recvJson);
+                    TransPackage recvPackage = JsonSerializer.ConvertToInstance<TransPackage>(recvJson);
                     DealRecvPackage(recvPackage, ref socket, ref buffer, size);
                 }
-            }
-            catch
-            {
-                if (clients[socket] == null)
-                {
-                    clients[socket] = new MemoryStream();
-                    clients[socket].Write(buffer, 0, size);
-                }
-                else
-                {
-                    lock (clients[socket])
-                    {
-                        clients[socket].Write(buffer, 0, size);
-                        try
-                        {
-                            byte[] totalBuffer = clients[socket].ToArray();
-                            string bufferStr = Encoding.UTF8.GetString(clients[socket].ToArray());
-                            if (JsonData.TryParseStream(bufferStr, out JsonData[] jsons))
-                            {
-                                Console.ForegroundColor = ConsoleColor.DarkGray;
-                                SafeWriteLine($"PartsBuffer parse succeed from {socket.RemoteEndPoint}, size: {clients[socket].Length}.");
-                                foreach (JsonData dealJson in jsons)
-                                {
-                                    TransPackage recvPackage = JsonData.ConvertToInstance<TransPackage>(dealJson);
-                                    DealRecvPackage(recvPackage, ref socket, ref totalBuffer, totalBuffer.Length);
-                                    recvPackage = null;
-                                }
-                                jsons = null;
-                                clients[socket].Dispose();
-                                clients[socket] = null;
-                                totalBuffer = null;
-                                bufferStr = null;
-                            }
-                        }
-                        catch { }
-                    }
-                }
-
-                clientBufferWroteTime[socket] = DateTime.Now;                       // 记录写入时间
-
-                Console.ForegroundColor = ConsoleColor.DarkGray;
-                SafeWriteLine($"Recieved data from {socket.RemoteEndPoint}, size: {size}, Wrote to PartsBuffer.");
-                buffer = null;
-                GC.Collect(2, GCCollectionMode.Forced, true, true);
-            }
         }        // 当收到客户端消息
         private static void Server_ClientDisconnected(object sender, Socket socket)
         {
@@ -401,8 +333,7 @@ namespace TocTiny
 
             lock (clients)
             {
-                clients[socket] = null;
-                clientBufferWroteTime[socket] = DateTime.Now;
+                clients.Add(socket);
             }
 
             new Thread(() =>
@@ -462,10 +393,10 @@ namespace TocTiny
                             {
                                 if (user.PasswordHash == recvPackage.Content.GetHashCode())
                                 {
-                                    socket.Send(
+                                    socket.SendTOC(
                                         Encoding.UTF8.GetBytes(
-                                            JsonData.ConvertToText(
-                                                JsonData.Create(new TransPackage()
+                                            JsonSerializer.ConvertToText(
+                                                JsonSerializer.Create(new TransPackage()
                                                 {
                                                     Name = "Server",
                                                     Content = user.Guid,
@@ -488,10 +419,10 @@ namespace TocTiny
                             if (user == null)
                             {
                                 User newuser = CreateUser(recvPackage);
-                                socket.Send(
+                                socket.SendTOC(
                                     Encoding.UTF8.GetBytes(
-                                        JsonData.ConvertToText(
-                                            JsonData.Create(new TransPackage()
+                                        JsonSerializer.ConvertToText(
+                                            JsonSerializer.Create(new TransPackage()
                                             {
                                                 Name = "Server",
                                                 Content = newuser.Guid,
@@ -537,10 +468,10 @@ namespace TocTiny
                         SafeWriteLine($"Draw Attention: Sender: {recvPackage.Name}");
                         break;
                     case ConstDef.ChangeChannelName:
-                        socket.Send(
+                        socket.SendTOC(
                             Encoding.UTF8.GetBytes(
-                                JsonData.ConvertToText(
-                                    JsonData.Create(new TransPackage()
+                                JsonSerializer.ConvertToText(
+                                    JsonSerializer.Create(new TransPackage()
                                     {
                                         Name = "Server",
                                         Content = channelName,
@@ -551,10 +482,10 @@ namespace TocTiny
                         SafeWriteLine($"Channel Name Req: Sender: {recvPackage.Name}");
                         break;
                     case ConstDef.ReportChannelOnline:
-                        socket.Send(
+                        socket.SendTOC(
                             Encoding.UTF8.GetBytes(
-                                JsonData.ConvertToText(
-                                    JsonData.Create(new TransPackage()
+                                JsonSerializer.ConvertToText(
+                                    JsonSerializer.Create(new TransPackage()
                                     {
                                         Name = "Server",
                                         Content = $"Online: {clients.Count}, Your IP Address: {((IPEndPoint)socket.RemoteEndPoint).Address}",
@@ -568,10 +499,10 @@ namespace TocTiny
                         SafeWriteLine($"{recvPackage.Name} try to execute a command on this server.");
                         if (!AdminGuid.Contains(recvPackage.ClientGuid))
                         {
-                            socket.Send(
+                            socket.SendTOC(
                                 Encoding.UTF8.GetBytes(
-                                    JsonData.ConvertToText(
-                                        JsonData.Create(new TransPackage()
+                                    JsonSerializer.ConvertToText(
+                                        JsonSerializer.Create(new TransPackage()
                                         {
                                             Name = "Server",
                                             Content = $"You don't have right to execute command on remote server.",
@@ -582,10 +513,10 @@ namespace TocTiny
                         else
                         {
                             DealCommand(recvPackage.Content);
-                            socket.Send(
+                            socket.SendTOC(
                                 Encoding.UTF8.GetBytes(
-                                    JsonData.ConvertToText(
-                                        JsonData.Create(new TransPackage()
+                                    JsonSerializer.ConvertToText(
+                                        JsonSerializer.Create(new TransPackage()
                                         {
                                             Name = "Server",
                                             Content = $"Command executed!",
@@ -603,8 +534,8 @@ namespace TocTiny
                                 }
                                 socket1.Send(
                                 Encoding.UTF8.GetBytes(
-                                    JsonData.ConvertToText(
-                                        JsonData.Create(new TransPackage()
+                                    JsonSerializer.ConvertToText(
+                                        JsonSerializer.Create(new TransPackage()
                                         {
                                             Name = "Server",
                                             Content = $"Return:{a}",
@@ -620,10 +551,10 @@ namespace TocTiny
                         SafeWriteLine($"{recvPackage.Name} try to hook terminal on this server.");
                         if (!AdminGuid.Contains(recvPackage.ClientGuid))
                         {
-                            socket.Send(
+                            socket.SendTOC(
                                 Encoding.UTF8.GetBytes(
-                                    JsonData.ConvertToText(
-                                        JsonData.Create(new TransPackage()
+                                    JsonSerializer.ConvertToText(
+                                        JsonSerializer.Create(new TransPackage()
                                         {
                                             Name = "Server",
                                             Content = $"You don't have right to hook terminal on remote server.",
@@ -639,10 +570,10 @@ namespace TocTiny
                             bool p(string a)
                             {
                                 count += 1;
-                                socket1.Send(
+                                socket1.SendTOC(
                                 Encoding.UTF8.GetBytes(
-                                    JsonData.ConvertToText(
-                                        JsonData.Create(new TransPackage()
+                                    JsonSerializer.ConvertToText(
+                                        JsonSerializer.Create(new TransPackage()
                                         {
                                             Name = "Server",
                                             Content = $"Return:{a}",
@@ -658,20 +589,15 @@ namespace TocTiny
                         SafeWriteLine($"Recieved data from {socket.RemoteEndPoint}, size: {size}, but cannot be processed.");
                         break;
                 }
-
-                if (clients[socket] != null)
-                {
-                    DisposePartsBuffer(socket);
-                }
             }
         }      // 处理消息 (主函数
 
         private static void SendErrorPasswordNotCorrent(Socket socket)
         {
-            socket.Send(
+            socket.SendTOC(
                 Encoding.UTF8.GetBytes(
-                    JsonData.ConvertToText(
-                        JsonData.Create(new TransPackage()
+                    JsonSerializer.ConvertToText(
+                        JsonSerializer.Create(new TransPackage()
                         {
                             Name = "Server",
                             Content = $"Password error.",
@@ -682,10 +608,10 @@ namespace TocTiny
 
         private static void SendErrorUserDoesntExist(Socket socket)
         {
-            socket.Send(
+            socket.SendTOC(
                 Encoding.UTF8.GetBytes(
-                    JsonData.ConvertToText(
-                        JsonData.Create(new TransPackage()
+                    JsonSerializer.ConvertToText(
+                        JsonSerializer.Create(new TransPackage()
                         {
                             Name = "Server",
                             Content = $"Error:This user doesn't exist.",
@@ -713,10 +639,10 @@ namespace TocTiny
 
         private static void WelcomeUser(TransPackage recvPackage, Socket socket)
         {
-            socket.Send(
+            socket.SendTOC(
                 Encoding.UTF8.GetBytes(
-                    JsonData.ConvertToText(
-                        JsonData.Create(new TransPackage()
+                    JsonSerializer.ConvertToText(
+                        JsonSerializer.Create(new TransPackage()
                         {
                             Name = "Server",
                             Content = $"Welcome!{recvPackage.Name}",
@@ -727,10 +653,10 @@ namespace TocTiny
 
         private static void SendErrorUserExisted(Socket socket)
         {
-            socket.Send(
+            socket.SendTOC(
                 Encoding.UTF8.GetBytes(
-                    JsonData.ConvertToText(
-                        JsonData.Create(new TransPackage()
+                    JsonSerializer.ConvertToText(
+                        JsonSerializer.Create(new TransPackage()
                         {
                             Name = "Server",
                             Content = $"Error:This user name existed.",
@@ -745,10 +671,10 @@ namespace TocTiny
 
         private static void SendMustLoginInfo(Socket socket)
         {
-            socket.Send(
+            socket.SendTOC(
                     Encoding.UTF8.GetBytes(
-                        JsonData.ConvertToText(
-                            JsonData.Create(new TransPackage()
+                        JsonSerializer.ConvertToText(
+                            JsonSerializer.Create(new TransPackage()
                             {
                                 Name = "Server",
                                 Content = $"You must be logged in to send messages on the remote server.\r\n" +

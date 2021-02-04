@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Null.Library.EventedSocket
 {
@@ -10,13 +13,13 @@ namespace Null.Library.EventedSocket
     public delegate void SocketRecvMsgHandler(object sender, Socket socket, byte[] buffer, int size);
     public class SocketServer
     {
-        private Socket server;                                               // 用来接受连接, 接收数据, 转发数据的套接字
-        private Dictionary<Socket, byte[]> clientBufferPairs;                // 缓冲区
+        private Socket server;                                               // 用来接受连接的套接字
+        private List<(Task, Socket)> workingSockets =new List<(Task,Socket)>();
         private int bufferSize;
         /// <summary>
         /// 基础Socket
         /// </summary>
-        public Socket Socket => server;
+        [Obsolete("为了兼容性请不要使用Socket，请使用Send发送信息", true)] public Socket Socket => server;
         /// <summary>
         /// 是否在运行
         /// </summary>
@@ -24,7 +27,11 @@ namespace Null.Library.EventedSocket
         /// <summary>
         /// 连接数
         /// </summary>
-        public int ConnectedCount => clientBufferPairs.Count;
+        public int ConnectedCount => workingSockets.Count;
+        /// <summary>
+        /// 获得监听Socket的任务
+        /// </summary>
+        public Task ListenTask { get; protected set; }
         /// <summary>
         /// 启动监听
         /// </summary>
@@ -34,11 +41,10 @@ namespace Null.Library.EventedSocket
         public void Start(ushort port, int backlog, int bufferSize)
         {
             server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            clientBufferPairs = new Dictionary<Socket, byte[]>();
             this.bufferSize = bufferSize;
             server.Bind(new IPEndPoint(IPAddress.Any, port));
             server.Listen(backlog);
-            server.BeginAccept(AcceptAction, null);
+            ListenTask = Task.Run(AcceptAction);
         }
         /// <summary>
         /// 停止监听
@@ -56,95 +62,74 @@ namespace Null.Library.EventedSocket
         /// 接受连接操作
         /// </summary>
         /// <param name="ar">Sokcet连接异步结果</param>
-        private void AcceptAction(IAsyncResult ar)
+        private void AcceptAction()
         {
-            Socket client = server.EndAccept(ar);
-            if (ClientConnected != null)
+            while (true)
             {
+                Socket client = server.Accept();
                 ClientConnected.Invoke(this, client);
+                workingSockets.Add((Task.Run(() => ReceiveAction(client)), client));
             }
-
-            clientBufferPairs[client] = new byte[bufferSize];
-            StateObject state = new StateObject
-            {
-                workSocket = client
-            };
-            client.BeginReceive(clientBufferPairs[client], 0, bufferSize, SocketFlags.None, ReceiveAction, state);
-
-            server.BeginAccept(AcceptAction, null);
         }
 
         /// <summary>
         /// 接受数据操作
         /// </summary>
         /// <param name="ar">Sokcet连接异步结果</param>
-        private void ReceiveAction(IAsyncResult ar)
+        private void ReceiveAction(Socket socket)
         {
-            Socket client = ((StateObject)ar.AsyncState).workSocket;
-            int size = 0;
+            Socket client = socket;
             try
             {
-                size = client.EndReceive(ar);
+                while (true)
+                {
+                    byte[] vs = new byte[8];
+                    client.Receive(vs);
+                    BinaryReader br = new BinaryReader(new MemoryStream(vs));
+                    int head = br.ReadInt32();
+                    int len = br.ReadInt32();
+                    br.Dispose();
+                    if (head == 0x544F4332)
+                    {
+                        byte[] vs1 = new byte[0];
+                        Array.Resize(ref vs1, len);
+                        client.Receive(vs1);
+                        try //控制异常范围
+                        {
+                            RecvedClientMsg.Invoke(this, client, vs1, len);
+                        }
+                        catch
+                        {
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception(); //抛出异常实现什么都不做
+                    }
+                }
             }
             catch
             {
-                clientBufferPairs.Remove(client);
-                if (ClientDisconnected != null)
-                {
-                    ClientDisconnected.Invoke(this, client);
-                }
-
-                client.Close();
-                return;
-            }
-
-            if (size == 0)
-            {
-                clientBufferPairs.Remove(client);
-                if (ClientDisconnected != null)
-                {
-                    ClientDisconnected.Invoke(this, client);
-                }
-
-                client.Close();
-            }
-            else
-            {
-                if (RecvedClientMsg != null)
-                {
-                    RecvedClientMsg.Invoke(this, client, clientBufferPairs[client], size);
-                }
-
-                client.BeginReceive(clientBufferPairs[client], 0, bufferSize, SocketFlags.None, new AsyncCallback(ReceiveAction), ar.AsyncState);
+                ClientDisconnected.Invoke(this, client);
+                client.Dispose();
             }
         }
+
     }
     public class SocketClient
     {
-        private Socket server;
-        private byte[] buffer;
         /// <summary>
-        /// 获取一个值，该值指示 System.Net.Sockets.Socket 是在上次 Overload:System.Net.Sockets.Socket.Send
-        /// 还是 Overload:System.Net.Sockets.Socket.Receive 操作时连接到远程主机。
+        /// 基础Socket
         /// </summary>
-        public bool Connected
-        {
-            get
-            {
-                if (server != null)
-                {
-                    return server.Connected;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-        }
+        private Socket server;
         /// <summary>
         /// 获得连接到服务器的Sokcet
         /// </summary>
-        public Socket SocketToServer => server;
+        [Obsolete("为了兼容性请不要使用SocketToServer，请使用Send发送信息",true)]public Socket SocketToServer => server;
+        /// <summary>
+        /// 获得监听Socket的任务
+        /// </summary>
+        public Task ListenTask { get; protected set; }
         /// <summary>
         /// 连接到目标主机
         /// </summary>
@@ -154,19 +139,7 @@ namespace Null.Library.EventedSocket
         {
             server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             server.Connect(address);
-            buffer = new byte[bufferSize];
-
-            try
-            {
-                server.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, ReceiveAction, null);
-            }
-            catch
-            {
-                if (Disconnected != null)
-                {
-                    Disconnected.Invoke(this, server);
-                }
-            }
+            ListenTask= Task.Run(() => this.ReceiveAction());
         }
         public object Tag { get; set; }
         public event SocketRecvMsgHandler ReceivedMsg;
@@ -176,52 +149,50 @@ namespace Null.Library.EventedSocket
         /// 接受操作
         /// </summary>
         /// <param name="ar">Sokcet连接异步结果</param>
-        private void ReceiveAction(IAsyncResult ar)
+        private void ReceiveAction()
         {
-            int size = 0;
             try
             {
-                size = server.EndReceive(ar);
-            }
-            catch
-            {
-                if (Disconnected != null)
+                while (true)
                 {
-                    Disconnected.Invoke(this, server);
-                }
-
-                server.Close();
-                return;
-            }
-
-            if (size == 0)
-            {
-                if (Disconnected != null)
-                {
-                    Disconnected.Invoke(this, server);
-                }
-
-                server.Close();
-            }
-            else
-            {
-                if (ReceivedMsg != null)
-                {
-                    ReceivedMsg.Invoke(this, SocketToServer, buffer, size);
-                }
-
-                try
-                {
-                    server.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveAction), null);
-                }
-                catch
-                {
-                    if (Disconnected != null)
+                    byte[] vs = new byte[8];
+                    server.Receive(vs);
+                    BinaryReader br = new BinaryReader(new MemoryStream(vs));
+                    int head = br.ReadInt32();
+                    int len = br.ReadInt32();
+                    br.Dispose();
+                    if (head == 0x544F4332)
                     {
-                        Disconnected.Invoke(this, server);
+                        byte[] vs1 = new byte[0];
+                        Array.Resize(ref vs1, len);
+                        server.Receive(vs1);
+                        try //控制异常范围
+                        {
+                            ReceivedMsg.Invoke(this, server, vs1, len);
+                        }
+                        catch
+                        {
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception(); //抛出异常实现什么都不做
                     }
                 }
             }
+            catch
+            {
+                Disconnected.Invoke(this, server);
+                server.Dispose();
+            }
+        }
+        public int Send(byte[] buffer)
+        {
+            return server.SendTOC(buffer);
+        }
+        public int SendDirect(byte[] buffer)
+        {
+            return server.Send(buffer);
         }
     }
     public class StateObject
@@ -230,5 +201,24 @@ namespace Null.Library.EventedSocket
         /// 工作Socket
         /// </summary>
         public Socket workSocket;
+    }
+}
+public static class SocketExt
+{
+    public static int SendTOC(this Socket socket,byte[] buffer)
+    {
+        return SendTOC(socket, buffer, buffer.Length, SocketFlags.None);
+    }
+    public static int SendTOC(this Socket socket, byte[] buffer,int size,SocketFlags socketFlags)
+    {
+        byte[] nbuffer = new byte[0] { };
+        int length = size;
+        Array.Resize(ref nbuffer, length + 8);
+        BinaryWriter bw = new BinaryWriter(new MemoryStream(nbuffer));
+        bw.Write(0x544F4332);//"TOC2"
+        bw.Write(length);
+        bw.Write(buffer);
+        bw.Dispose();
+        return socket.Send(nbuffer);
     }
 }

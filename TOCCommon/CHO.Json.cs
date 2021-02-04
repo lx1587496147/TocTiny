@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -105,255 +106,27 @@ namespace CHO.Json
     /// </summary>
     public enum JsonDataType
     {
+        Null,
         Object,
         Array,
         String,
-        Integer,
+        Int32,
         Float,
         Double,
-        Boolean,
-        Null
+        Boolean
     }
-
-    /// <summary>
-    /// 单个Json数据
-    /// </summary>
-    public class JsonData
+    public class JsonSerializer
     {
-        protected JsonDataType dataType;
-        protected object content;
-
-        public JsonDataType DataType => dataType;
-
-        protected JsonData() { }
-
         /// <summary>
-        /// 创建一个Object类型的空Json数据
+        /// 将JsonData实例中的数据反序列化为指定类型的实例
         /// </summary>
-        /// <returns>包含Object类型Json数据的JsonData实例</returns>
-        public static JsonData CreateObject()
-        {
-            JsonData result = new JsonData
-            {
-                dataType = JsonDataType.Object,
-                content = new Dictionary<JsonData, JsonData>()
-            };
-            return result;
-        }
-        /// <summary>
-        /// 创建一个Array类型的空Json数据
-        /// </summary>
-        /// <returns>包含Array类型Json数据的JsonData实例</returns>
-        public static JsonData CreateArray()
-        {
-            JsonData result = new JsonData
-            {
-                dataType = JsonDataType.Array,
-                content = new List<JsonData>()
-            };
-            return result;
-        }
-        /// <summary>
-        /// 创建一个String类型的空Json数据
-        /// </summary>
-        /// <returns>包含String类型Json数据的JsonData实例</returns>
-        public static JsonData CreateString()
-        {
-            JsonData result = new JsonData
-            {
-                dataType = JsonDataType.String,
-                content = string.Empty
-            };
-            return result;
-        }
-        /// <summary>
-        /// 创建一个Integer类型的空Json数据
-        /// </summary>
+        /// <typeparam name="T">指定类型</typeparam>
+        /// <param name="jsonData">要进行操作的JsonData实例</param>
         /// <returns></returns>
-        public static JsonData CreateInteger()
+        public static T ConvertToInstance<T>(JsonData jsonData)
         {
-            JsonData result = new JsonData
-            {
-                dataType = JsonDataType.Integer,
-                content = 0
-            };
-            return result;
+            return ConvertToInstance<T>(jsonData, null);
         }
-        /// <summary>
-        /// 创建一个Float类型的空Json数据
-        /// </summary>
-        /// <returns></returns>
-        public static JsonData CreateFloat()
-        {
-            JsonData result = new JsonData
-            {
-                dataType = JsonDataType.Integer,
-                content = (float)0
-            };
-            return result;
-        }
-        /// <summary>
-        /// 创建一个Double类型的空Json数据
-        /// </summary>
-        /// <returns>包含Double类型Json数据的JsonData实例</returns>
-        public static JsonData CreateDouble()
-        {
-            JsonData result = new JsonData
-            {
-                dataType = JsonDataType.Double,
-                content = 0.0
-            };
-            return result;
-        }
-        /// <summary>
-        /// 创建一个Bool类型的空Json数据
-        /// </summary>
-        /// <returns>包含Bool类型Json数据的JsonData实例</returns>
-        public static JsonData CreateBoolean()
-        {
-            JsonData result = new JsonData
-            {
-                dataType = JsonDataType.Boolean,
-                content = false
-            };
-            return result;
-        }
-        /// <summary>
-        /// 创建一个空Json数据
-        /// </summary>
-        /// <returns>包含空Json数据的JsonData实例</returns>
-        public static JsonData CreateNull()
-        {
-            JsonData result = new JsonData
-            {
-                dataType = JsonDataType.Null,
-                content = null
-            };
-            return result;
-        }
-        /// <summary>
-        /// 根据参数创建一个包含相应类型Json数据的JsonData实例
-        /// </summary>
-        /// <param name="obj">参数</param>
-        /// <returns>对应JsonData实例</returns>
-        public static JsonData Create(object obj)
-        {
-            if (obj == null)
-            {
-                return CreateNull();
-            }
-            else
-            {
-                Type objType = obj.GetType();
-
-                JsonData result = new JsonData();
-                if (typeof(string).IsAssignableFrom(objType))
-                {
-                    result.dataType = JsonDataType.String;
-                    result.content = obj;
-                    return result;
-                }
-                else if (typeof(bool).IsAssignableFrom(objType))
-                {
-                    result.dataType = JsonDataType.Boolean;
-                    result.content = obj;
-                    return result;
-                }
-                else if (typeof(int).IsAssignableFrom(objType))
-                {
-                    result.dataType = JsonDataType.Integer;
-                    result.content = obj;
-                    return result;
-                }
-                else if (typeof(float).IsAssignableFrom(objType))
-                {
-                    result.dataType = JsonDataType.Float;
-                    result.content = obj;
-                    return result;
-                }
-                else if (typeof(double).IsAssignableFrom(objType))
-                {
-                    result.dataType = JsonDataType.Double;
-                    result.content = obj;
-                    return result;
-                }
-                else if (typeof(IDictionary).IsAssignableFrom(objType))
-                {
-                    Dictionary<JsonData, JsonData> objcntnt = new Dictionary<JsonData, JsonData>();
-                    foreach (object i in (obj as IDictionary).Keys)
-                    {
-                        objcntnt[Create(i)] = Create((obj as IDictionary)[i]);
-                    }
-
-                    result.dataType = JsonDataType.Object;
-                    result.content = objcntnt;
-                    return result;
-                }
-                else if (typeof(IList).IsAssignableFrom(objType))
-                {
-                    List<JsonData> objcntnt = new List<JsonData>();
-                    foreach (object i in obj as IList)
-                    {
-                        objcntnt.Add(Create(i));
-                    }
-
-                    result.dataType = JsonDataType.Array;
-                    result.content = objcntnt;
-                    return result;
-                }
-                else
-                {
-                    Dictionary<JsonData, JsonData> objcntnt = new Dictionary<JsonData, JsonData>();
-                    FieldInfo[] fs = objType.GetFields();
-
-                    foreach (FieldInfo i in fs)
-                    {
-                        objcntnt[Create(i.Name)] = Create(i.GetValue(obj));
-                    }
-
-                    result.dataType = JsonDataType.Object;
-                    result.content = objcntnt;
-                    return result;
-                }
-            }
-        }
-
-
-        public static T Deserialize<T>(string jsonText)
-        {
-            return (T)ConvertToInstance(Parse(jsonText), typeof(T));
-        }
-        public static bool TryDeserialize<T>(string jsonText, out T result)
-        {
-            try
-            {
-                result = Deserialize<T>(jsonText);
-                return true;
-            }
-            catch
-            {
-                result = default;
-                return false;
-            }
-        }
-        public static string Serialize(object obj)
-        {
-            return ConvertToText(Create(obj));
-        }
-        public static bool TrySerialize(object obj, out string result)
-        {
-            try
-            {
-                result = Serialize(obj);
-                return true;
-            }
-            catch
-            {
-                result = null;
-                return false;
-            }
-        }
-
         protected static object ConvertToInstance(JsonData jsonData, Type resultType)
         {
             if (jsonData.DataType == JsonDataType.Null || jsonData.content == null)
@@ -370,8 +143,8 @@ namespace CHO.Json
             }
             else
             {
-                object result = System.Activator.CreateInstance(resultType);
-                if (jsonData.dataType == JsonDataType.Object)
+                object result = Activator.CreateInstance(resultType);
+                if (jsonData.DataType == JsonDataType.Object)
                 {
                     if (CheckInterface(resultType, typeof(IDictionary), out Type[] _) && CheckInterface(resultType, typeof(IDictionary<,>), out Type[] geneticArgs))
                     {
@@ -385,7 +158,7 @@ namespace CHO.Json
                     {
                         foreach (JsonData i in (jsonData.content as IDictionary<JsonData, JsonData>).Keys)
                         {
-                            if (i.dataType == JsonDataType.String)
+                            if (i.DataType == JsonDataType.String)
                             {
                                 FieldInfo field = resultType.GetField(i.content as string);
                                 if (field != null)
@@ -406,7 +179,7 @@ namespace CHO.Json
                         return result;
                     }
                 }
-                else if (jsonData.dataType == JsonDataType.Array)
+                else if (jsonData.DataType == JsonDataType.Array)
                 {
                     if (CheckInterface(resultType, typeof(IList), out Type[] _) && CheckInterface(resultType, typeof(IList<>), out Type[] geneticTypes))
                     {
@@ -427,24 +200,18 @@ namespace CHO.Json
                 }
             }
         }
-        /// <summary>
-        /// 将JsonData实例中的数据反序列化为指定类型的实例
-        /// </summary>
-        /// <typeparam name="T">指定类型</typeparam>
-        /// <param name="jsonData">要进行操作的JsonData实例</param>
-        /// <returns></returns>
-        public static T ConvertToInstance<T>(JsonData jsonData)
+        public static T ConvertToInstance<T>(JsonData jsonData, object useless = default)
         {
             return (T)ConvertToInstance(jsonData, typeof(T));
         }
         /// <summary>
         /// 将JsonData实例中的数据转换成Json文本
-        /// 注意: 本程序集可以读取, 但其他容错值较小的Json操作程序集或包可能无法读取它
+        /// 注意: CHO.Json可以读取, 但其他Json序列化库可能无法读取它
         /// </summary>
         /// <returns>String类型的Json文本</returns>
         public static string ConvertToText(JsonData jsonData)
         {
-            switch (jsonData.dataType)
+            switch (jsonData.DataType)
             {
                 case JsonDataType.Object:
                     List<string> pairs = new List<string>();
@@ -462,7 +229,7 @@ namespace CHO.Json
                     return string.Format("[{0}]", string.Join(", ", elements));
                 case JsonDataType.String:
                     return string.Format("\"{0}\"", ((string)jsonData.content).Replace("\\", "\\\\").Replace("\'", "\\\'").Replace("\"", "\\\"").Replace("\0", "\\0").Replace("\a", "\\a").Replace("\b", "\\b").Replace("\f", "\\f").Replace("\n", "\\n").Replace("\r", "\\r").Replace("\t", "\\t").Replace("\v", "\\v"));
-                case JsonDataType.Integer:
+                case JsonDataType.Int32:
                     return ((int)jsonData.content).ToString();
                 case JsonDataType.Float:
                     return ((float)jsonData.content).ToString();
@@ -476,7 +243,7 @@ namespace CHO.Json
                     throw new JsonDataTypeException("所访问数据类型未知");
             }
         }
-        public static bool TryConvertToInstance<T>(JsonData jsonData, out T result)
+        public static bool TryConvertToInstance<T>(JsonData jsonData, out T result) where T : new()
         {
             try
             {
@@ -502,341 +269,6 @@ namespace CHO.Json
                 return false;
             }
         }
-
-
-        /// <summary>
-        /// 从包含Object类型Json数据的JsonData实例中获取所包含的数据
-        /// </summary>
-        /// <returns>Dictionary<JsonData, JsonData>实例</returns>
-        public Dictionary<JsonData, JsonData> GetObject()
-        {
-            if (dataType == JsonDataType.Object)
-            {
-                return (Dictionary<JsonData, JsonData>)content;
-            }
-            else
-            {
-                throw new JsonDataTypeException("所访问数据不是Object类型");
-            }
-        }
-        /// <summary>
-        /// 从包含Object类型Json数据的JsonData实例中获取所包含的数据
-        /// </summary>
-        /// <returns>List<JsonData>实例</returns>
-        public List<JsonData> GetArray()
-        {
-            if (dataType == JsonDataType.Array)
-            {
-                return (List<JsonData>)content;
-            }
-            else
-            {
-                throw new JsonDataTypeException("所访问数据不是Array类型");
-            }
-        }
-        /// <summary>
-        /// 从包含String类型Json数据的JsonData实例中获取所包含的数据
-        /// </summary>
-        /// <returns>String值</returns>
-        public string GetString()
-        {
-            if (dataType == JsonDataType.String)
-            {
-                return (string)content;
-            }
-            else
-            {
-                throw new JsonDataTypeException("所访问数据不是String类型");
-            }
-        }
-        /// <summary>
-        /// 从包含Interger类型Json数据的JsonData实例中获取所包含的数据
-        /// </summary>
-        /// <returns>Integer值</returns>
-        public int GetInteger()
-        {
-            if (dataType == JsonDataType.Integer)
-            {
-                return (int)content;
-            }
-            else
-            {
-                throw new JsonDataTypeException("所访问数据不是Integer类型");
-            }
-        }
-        /// <summary>
-        /// 从包含Float类型Json数据的JsonData实例中获取所包含的数据
-        /// </summary>
-        /// <returns>Float值</returns>
-        public float GetFloat()
-        {
-            if (dataType == JsonDataType.Float)
-            {
-                return (float)content;
-            }
-            else
-            {
-                throw new JsonDataTypeException("所访问数据不是Float类型");
-            }
-        }
-        /// <summary>
-        /// 从包含Double类型Json数据的JsonData实例中获取所包含的数据
-        /// </summary>
-        /// <returns>Double值</returns>
-        public double GetDouble()
-        {
-            if (dataType == JsonDataType.Double)
-            {
-                return (double)content;
-            }
-            else
-            {
-                throw new JsonDataTypeException("所访问数据不是Double类型");
-            }
-        }
-        /// <summary>
-        /// 从包含Bool类型Json数据的JsonData实例中获取所包含的数据
-        /// </summary>
-        /// <returns>Boolean值</returns>
-        public bool GetBoolean()
-        {
-            if (dataType == JsonDataType.Boolean)
-            {
-                return (bool)content;
-            }
-            else
-            {
-                throw new JsonDataTypeException("所访问数据不是Bool类型");
-            }
-        }
-
-        /// <summary>
-        /// 从包含Json数据的JsonData实例中获取所包含的数据
-        /// </summary>
-        /// <returns>对应数据的实例</returns>
-        public object GetData()
-        {
-            return content;
-        }
-
-        public static implicit operator JsonData(Dictionary<JsonData, JsonData> value)
-        {
-            return Create(value);
-        }
-        public static implicit operator JsonData(List<JsonData> value)
-        {
-            return Create(value);
-        }
-        public static implicit operator JsonData(string value)
-        {
-            return Create(value);
-        }
-        public static implicit operator JsonData(int value)
-        {
-            return Create(value);
-        }
-        public static implicit operator JsonData(float value)
-        {
-            return Create(value);
-        }
-        public static implicit operator JsonData(double value)
-        {
-            return Create(value);
-        }
-        public static implicit operator JsonData(bool value)
-        {
-            return Create(value);
-        }
-
-        public JsonData this[JsonData by]
-        {
-            get
-            {
-                switch (dataType)
-                {
-                    case JsonDataType.Object:
-                        return (content as Dictionary<JsonData, JsonData>)[by];
-                    case JsonDataType.Array:
-                        if (by.dataType == JsonDataType.Integer)
-                        {
-                            return (content as List<JsonData>)[(int)by.content];
-                        }
-                        else
-                        {
-                            throw new JsonDataTypeException("应使用Integer数据");
-                        }
-                    default:
-                        throw new JsonDataTypeException("操作对该Json数据无效");
-                }
-            }
-            set
-            {
-                switch (dataType)
-                {
-                    case JsonDataType.Object:
-                        (content as Dictionary<JsonData, JsonData>)[by] = value;
-                        break;
-                    case JsonDataType.Array:
-                        if (by.dataType == JsonDataType.Double)
-                        {
-                            (content as List<JsonData>)[by.GetInteger()] = value;
-                        }
-                        else
-                        {
-                            throw new JsonDataTypeException("应使用Integer数据");
-                        }
-                        break;
-                    default:
-                        throw new JsonDataTypeException("操作对该Json数据无效");
-                }
-            }
-        }
-
-        /// <summary>
-        /// 获取Array或Object的内容个数
-        /// </summary>
-        /// <returns></returns>
-        public int GetCount()
-        {
-            if (dataType == JsonDataType.Array)
-            {
-                return ((List<JsonData>)content).Count;
-            }
-            else if (dataType == JsonDataType.Object)
-            {
-                return ((Dictionary<JsonData, JsonData>)content).Count;
-            }
-            else
-            {
-                throw new JsonDataTypeException("所访问数据不是Array或Object类型");
-            }
-        }
-        /// <summary>
-        /// 获取Object的键集合
-        /// </summary>
-        /// <returns>Dictionary<JsonData, JsonData>.KeyCollection</returns>
-        public JsonData[] GetKeys()
-        {
-            if (dataType == JsonDataType.Object)
-            {
-                return (content as Dictionary<JsonData, JsonData>).Keys.ToArray();
-            }
-            else
-            {
-                throw new JsonDataTypeException("所访问数据不是Object类型");
-            }
-        }
-
-        /// <summary>
-        /// 获取Object的值集合
-        /// </summary>
-        /// <returns>Dictionary<JsonData, JsonData>.ValueCollection</returns>
-        public JsonData[] GetValues()
-        {
-            if (dataType == JsonDataType.Object)
-            {
-                return (content as Dictionary<JsonData, JsonData>).Values.ToArray();
-            }
-            else
-            {
-                throw new JsonDataTypeException("所访问数据不是Object类型");
-            }
-        }
-
-        /// <summary>
-        /// 在Object设置或更改原有键值对
-        /// </summary>
-        /// <param name="key">键</param>
-        /// <param name="value">值</param>
-        public void Set(JsonData key, JsonData value)
-        {
-            if (dataType == JsonDataType.Object)
-            {
-                if ((content as Dictionary<JsonData, JsonData>).ContainsKey(key))
-                {
-                    (content as Dictionary<JsonData, JsonData>)[key] = value;
-                }
-            }
-            else
-            {
-                throw new JsonDataTypeException("所访问数据不是Object类型");
-            }
-        }
-
-        /// <summary>
-        /// 在Array中添加一个元素
-        /// </summary>
-        /// <param name="element">元素</param>
-        public void Add(JsonData element)
-        {
-            if (dataType == JsonDataType.Array)
-            {
-                (content as List<JsonData>).Add(element);
-            }
-            else
-            {
-                throw new JsonDataTypeException("所访问数据不是Array类型");
-            }
-        }
-
-        /// <summary>
-        /// 根据键从Object删除匹配键值对或在Array中删除第一个匹配元素
-        /// </summary>
-        /// <param name="basis">检索一句</param>
-        public void Remove(JsonData basis)
-        {
-            switch (dataType)
-            {
-                case JsonDataType.Object:
-                    (content as Dictionary<JsonData, JsonData>).Remove(basis);
-                    break;
-                case JsonDataType.Array:
-                    (content as List<JsonData>).Remove(basis);
-                    break;
-                default:
-                    throw new JsonDataTypeException("操作对该Json数据无效");
-            }
-        }
-
-        /// <summary>
-        /// 从Array中删除指定索引的元素
-        /// </summary>
-        /// <param name="index">索引</param>
-        public void RemoveAt(int index)
-        {
-            if (dataType == JsonDataType.Array)
-            {
-                (content as List<JsonData>).RemoveAt(index);
-            }
-            else
-            {
-                throw new JsonDataTypeException("所访问数据不是Array类型");
-            }
-        }
-
-        /// <summary>
-        /// 检查Object是否含有某键或Array是否含有某元素
-        /// </summary>
-        /// <param name="basis">检索依据</param>
-        public bool Contains(JsonData basis)
-        {
-            switch (dataType)
-            {
-                case JsonDataType.Object:
-                    return (content as Dictionary<JsonData, JsonData>).ContainsKey(basis);
-                case JsonDataType.Array:
-                    return (content as List<JsonData>).Contains(basis);
-                default:
-                    throw new JsonDataTypeException("操作对该Json数据无效");
-            }
-        }
-
-        //private readonly static char[] EmptyChars = " \n\r\t\0".ToCharArray();
-        //private readonly static char[] ParseEndChars = " :,}]\" \n\r\t\0".ToCharArray();
-        //private readonly static char[] ParseNumberChars = "QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789.-".ToCharArray();
-        //private readonly static char[] ParseWordChars = "QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm".ToCharArray();
-        //private readonly static char[] NumberChars = "0123456789-".ToCharArray();
-
         private static bool IsEmptyChar(char c)
         {
             return c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '\0';
@@ -933,7 +365,7 @@ namespace CHO.Json
                     else if (source[offset] == '}' || source[offset] == ']')
                     {
                         offset--;
-                        return null;
+                        return default;
                     }
                     else
                     {
@@ -941,7 +373,7 @@ namespace CHO.Json
                     }
                 }
             }
-            return CreateNull();
+            return default;
         }
         protected static JsonData ParseString(ref char[] source, ref int offset)
         {
@@ -1120,7 +552,7 @@ namespace CHO.Json
                 case "false":
                     return Create(false);
                 case "null":
-                    return CreateNull();
+                    return default;
                 default:
                     throw new JsonDataTypeException(string.Format("未知的关键词'{0}'", content.ToString()));
             }
@@ -1136,7 +568,7 @@ namespace CHO.Json
                 {
                     case ArrayParseState.ElementStart:
                         JsonData tempJson = ParseData(ref source, ref offset);
-                        if (tempJson != null)
+                        if (tempJson != default(JsonData))
                         {
                             resultContainer.Add(tempJson);
                         }
@@ -1155,7 +587,7 @@ namespace CHO.Json
                         {
                             JsonData result = new JsonData
                             {
-                                dataType = JsonDataType.Array,
+                                DataType = JsonDataType.Array,
                                 content = resultContainer
                             };
                             return result;
@@ -1189,7 +621,7 @@ namespace CHO.Json
         {
             ObjectParseState parseState = ObjectParseState.NotStart;
             Dictionary<JsonData, JsonData> resultContainer = new Dictionary<JsonData, JsonData>();
-            JsonData tempKey = null;
+            JsonData tempKey = default;
 
             for (; offset < source.Length; offset++)
             {
@@ -1197,7 +629,7 @@ namespace CHO.Json
                 {
                     case ObjectParseState.KeyStart:
                         tempKey = ParseData(ref source, ref offset);
-                        if (tempKey != null)
+                        if (tempKey != default(JsonData))
                         {
                             parseState = ObjectParseState.KeyEnd;
                         }
@@ -1237,7 +669,7 @@ namespace CHO.Json
                         {
                             JsonData result = new JsonData
                             {
-                                dataType = JsonDataType.Object,
+                                DataType = JsonDataType.Object,
                                 content = resultContainer
                             };
                             return result;
@@ -1320,7 +752,7 @@ namespace CHO.Json
 
             for (; offset < source.Length; offset++)
             {
-                JsonData currentJson = JsonData.ParseData(ref source, ref offset);
+                JsonData currentJson = ParseData(ref source, ref offset);
                 result.Add(currentJson);
             }
 
@@ -1335,7 +767,7 @@ namespace CHO.Json
 
             for (; offset < source.Length; offset++)
             {
-                JsonData currentJson = JsonData.ParseData(ref source, ref offset);
+                JsonData currentJson = ParseData(ref source, ref offset);
                 result.Add(currentJson);
             }
 
@@ -1356,7 +788,7 @@ namespace CHO.Json
             }
             catch
             {
-                jsonObj = null;
+                jsonObj = default;
                 return false;
             }
         }
@@ -1375,7 +807,7 @@ namespace CHO.Json
             }
             catch
             {
-                jsonObj = null;
+                jsonObj = default;
                 return false;
             }
         }
@@ -1405,115 +837,261 @@ namespace CHO.Json
                 return false;
             }
         }
-
         /// <summary>
-        /// 确定指定对象是否等于当前对象
+        /// 根据参数创建一个包含相应类型Json数据的JsonData实例
         /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        public override bool Equals(object obj)
+        /// <param name="obj">参数</param>
+        /// <returns>对应JsonData实例</returns>
+        public static JsonData Create(object obj)
         {
-            if (GetType() == obj.GetType())
+            if (obj == null)
             {
-                if (dataType == (obj as JsonData).dataType)
+                return default;
+            }
+            else
+            {
+
+                JsonData result = new JsonData();
+                if (obj is string)
                 {
-                    switch (dataType)
+                    result.DataType = JsonDataType.String;
+                    result.content = obj;
+                    return result;
+                }
+                else if (obj is bool)
+                {
+                    result.DataType = JsonDataType.Boolean;
+                    result.content = obj;
+                    return result;
+                }
+                else if (obj is int)
+                {
+                    result.DataType = JsonDataType.Int32;
+                    result.content = obj;
+                    return result;
+                }
+                else if (obj is float)
+                {
+                    result.DataType = JsonDataType.Float;
+                    result.content = obj;
+                    return result;
+                }
+                else if (obj is double)
+                {
+                    result.DataType = JsonDataType.Double;
+                    result.content = obj; 
+                    return result;
+                }
+                else if (obj is IDictionary)
+                {
+                    Dictionary<JsonData, JsonData> objcntnt = new Dictionary<JsonData, JsonData>();
+                    foreach (object i in (obj as IDictionary).Keys)
                     {
-                        case JsonDataType.Object:
-                            Dictionary<JsonData, JsonData> selfPairs = (Dictionary<JsonData, JsonData>)content;
-                            Dictionary<JsonData, JsonData> thatPairs = (Dictionary<JsonData, JsonData>)(obj as JsonData).content;
-
-                            bool Removed = false;
-
-                            foreach (JsonData key in selfPairs.Keys)
-                            {
-                                if (thatPairs.ContainsKey(key))
-                                {
-                                    foreach (JsonData key2 in thatPairs.Keys)
-                                    {
-                                        if (key.Equals(key2))
-                                        {
-                                            if (selfPairs[key].Equals(thatPairs[key2]))
-                                            {
-                                                thatPairs.Remove(key2);
-                                                Removed = true;
-                                                break;
-                                            }
-                                            else
-                                            {
-                                                return false;
-                                            }
-                                        }
-                                    }
-                                    if (Removed)
-                                    {
-                                        Removed = false;
-                                    }
-                                    else
-                                    {
-                                        return false;
-                                    }
-                                }
-                            }
-                            return (thatPairs.Count == 0);
-                        case JsonDataType.Array:
-                            List<JsonData> selfList = (List<JsonData>)content;
-                            List<JsonData> thatList = (List<JsonData>)(obj as JsonData).content;
-
-                            bool Deleted = false;
-
-                            foreach (JsonData element in selfList)
-                            {
-                                foreach (JsonData element2 in thatList)
-                                {
-                                    if (element.Equals(element2))
-                                    {
-                                        thatList.Remove(element2);
-                                        Deleted = true;
-                                        break;
-                                    }
-                                }
-                                if (Deleted)
-                                {
-                                    Deleted = false;
-                                }
-                                else
-                                {
-                                    return false;
-                                }
-                            }
-                            return (thatList.Count == 0);
-                        case JsonDataType.String:
-                            return ((string)content) == (string)((obj as JsonData).content);
-                        case JsonDataType.Double:
-                            return ((double)content) == (double)((obj as JsonData).content);
-                        case JsonDataType.Boolean:
-                            return ((bool)content) == (bool)((obj as JsonData).content);
+                        objcntnt[Create(i)] = Create((obj as IDictionary)[i]);
                     }
+
+                    result.DataType = JsonDataType.Object;
+                    result.content = objcntnt;
+                    return result;
+                }
+                else if (obj is IList)
+                {
+                    List<JsonData> objcntnt = new List<JsonData>();
+                    foreach (object i in obj as IList)
+                    {
+                        objcntnt.Add(Create(i));
+                    }
+
+                    result.DataType = JsonDataType.Array;
+                    result.content = objcntnt;
+                    return result;
+                }
+                else
+                {
+                    Dictionary<JsonData, JsonData> objData = new Dictionary<JsonData, JsonData>();
+                    FieldInfo[] fs = obj.GetType().GetFields();
+
+                    foreach (FieldInfo i in fs)
+                    {
+                        objData[Create(i.Name)] = Create(i.GetValue(obj));
+                    }
+
+                    result.DataType = JsonDataType.Object;
+                    result.content = objData;
+                    return result;
                 }
             }
-            return false;
         }
+
+    }
+
+    /// <summary>
+    /// 单个Json数据
+    /// </summary>
+    [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
+    public struct JsonData : IList<JsonData>,ICollection<JsonData>,IList,ICollection,IEnumerable,IDictionary,IReadOnlyDictionary<JsonData,JsonData>,IDictionary<JsonData,JsonData>
+    {
+        internal object content;
+
+        public object this[int index] { get => ((IList)Array)[index]; set => ((IList)Array)[index] = value; }
+        public object this[object key] { get => ((IDictionary)dictionary)[key]; set => ((IDictionary)dictionary)[key] = value; }
+
+        public JsonData this[JsonData key] => ((IReadOnlyDictionary<JsonData, JsonData>)dictionary)[key];
+
+        JsonData IList<JsonData>.this[int index] { get => ((IList<JsonData>)Array)[index]; set => ((IList<JsonData>)Array)[index] = value; }
+        JsonData IDictionary<JsonData, JsonData>.this[JsonData key] { get => ((IDictionary<JsonData, JsonData>)dictionary)[key]; set => ((IDictionary<JsonData, JsonData>)dictionary)[key] = value; }
+
+        public JsonDataType DataType { get ; internal set; }
+        /// <summary>
+        /// 从包含Array类型Json数据的JsonData实例中获取所包含的数据
+        /// </summary>
+        /// <returns>List<JsonData>实例</returns>
+        public List<JsonData> Array => DataType == JsonDataType.Array ? (List<JsonData>)content : throw new JsonDataTypeException("所访问数据不是Array类型");
+        /// <summary>
+        /// 从包含Object类型Json数据的JsonData实例中获取所包含的数据
+        /// </summary>
+        public Dictionary<JsonData,JsonData> dictionary => DataType == JsonDataType.Object ? (Dictionary<JsonData,JsonData>)content : throw new JsonDataTypeException("所访问数据不是Object类型");
+        /// <summary>
+        /// 从包含Json数据的JsonData实例中获取所包含的数据
+        /// </summary>
+        /// <returns>对应数据的实例</returns>
+        public object Content => content;
+
+        public bool IsReadOnly => ((IList)Array).IsReadOnly;
+
+        public bool IsFixedSize => ((IList)Array).IsFixedSize;
+
+        public int Count => ((ICollection)Array).Count;
+
+        public object SyncRoot => ((ICollection)Array).SyncRoot;
+
+        public bool IsSynchronized => ((ICollection)Array).IsSynchronized;
+
+        public ICollection Keys => ((IDictionary)dictionary).Keys;
+
+        public ICollection Values => ((IDictionary)dictionary).Values;
+
+        IEnumerable<JsonData> IReadOnlyDictionary<JsonData, JsonData>.Keys => ((IReadOnlyDictionary<JsonData, JsonData>)dictionary).Keys;
+
+        ICollection<JsonData> IDictionary<JsonData, JsonData>.Keys => ((IDictionary<JsonData, JsonData>)dictionary).Keys;
+
+        IEnumerable<JsonData> IReadOnlyDictionary<JsonData, JsonData>.Values => ((IReadOnlyDictionary<JsonData, JsonData>)dictionary).Values;
+
+        ICollection<JsonData> IDictionary<JsonData, JsonData>.Values => ((IDictionary<JsonData, JsonData>)dictionary).Values;
+
+        public int Add(object value)
+        => ((IList)Array).Add(value);
+
+        public void Add(JsonData item)
+        {
+            ((ICollection<JsonData>)Array).Add(item);
+        }
+
+        public void Add(object key, object value)
+        {
+            ((IDictionary)dictionary).Add(key, value);
+        }
+
+        public void Add(JsonData key, JsonData value)
+        {
+            ((IDictionary<JsonData, JsonData>)dictionary).Add(key, value);
+        }
+
+        public void Add(KeyValuePair<JsonData, JsonData> item)
+        {
+            ((ICollection<KeyValuePair<JsonData, JsonData>>)dictionary).Add(item);
+        }
+
+        public void Clear()
+        {
+            ((IList)Array).Clear();
+        }
+
+        public bool Contains(object value)
+        => ((IList)Array).Contains(value);
+
+        public bool Contains(JsonData item)
+        => ((ICollection<JsonData>)Array).Contains(item);
+
+        public bool Contains(KeyValuePair<JsonData, JsonData> item)
+        => ((ICollection<KeyValuePair<JsonData, JsonData>>)dictionary).Contains(item);
+
+        public bool ContainsKey(JsonData key)
+        => ((IReadOnlyDictionary<JsonData, JsonData>)dictionary).ContainsKey(key);
+
+        public void CopyTo(Array array, int index)
+        {
+            ((ICollection)Array).CopyTo(array, index);
+        }
+
+        public void CopyTo(JsonData[] array, int arrayIndex)
+        {
+            ((ICollection<JsonData>)Array).CopyTo(array, arrayIndex);
+        }
+        public void CopyTo(KeyValuePair<JsonData, JsonData>[] array, int arrayIndex)
+        {
+            ((ICollection<KeyValuePair<JsonData, JsonData>>)dictionary).CopyTo(array, arrayIndex);
+        }
+
+        public IEnumerator GetEnumerator()
+        => ((IEnumerable)Array).GetEnumerator();
+
         /// <summary>
         /// 获取JsonData实例所包含数据的HashCode
         /// </summary>
         /// <returns>int类型的HashCode值</returns>
-        public override int GetHashCode()
+        public override int GetHashCode() => content.GetHashCode();
+
+        public int IndexOf(object value)
+        => ((IList)Array).IndexOf(value);
+
+        public int IndexOf(JsonData item)
+        => ((IList<JsonData>)Array).IndexOf(item);
+
+        public void Insert(int index, object value)
         {
-            switch (dataType)
-            {
-                case JsonDataType.Object:
-                    return (content as Dictionary<JsonData, JsonData>).GetHashCode();
-                case JsonDataType.Array:
-                    return (content as List<JsonData>).GetHashCode();
-                case JsonDataType.String:
-                    return ((string)content).GetHashCode();
-                case JsonDataType.Double:
-                    return ((double)content).GetHashCode();
-                case JsonDataType.Boolean:
-                    return ((bool)content).GetHashCode();
-            }
-            return content.GetHashCode();
+            ((IList)Array).Insert(index, value);
+        }
+
+        public void Insert(int index, JsonData item)
+        {
+            ((IList<JsonData>)Array).Insert(index, item);
+        }
+
+        public void Remove(object value)
+        {
+            ((IList)Array).Remove(value);
+        }
+
+        public bool Remove(JsonData item)
+        => ((ICollection<JsonData>)Array).Remove(item);
+
+        public bool Remove(KeyValuePair<JsonData, JsonData> item)
+        => ((ICollection<KeyValuePair<JsonData, JsonData>>)dictionary).Remove(item);
+
+        public void RemoveAt(int index)
+        {
+            ((IList)Array).RemoveAt(index);
+        }
+
+        public bool TryGetValue(JsonData key, out JsonData value)
+        => ((IReadOnlyDictionary<JsonData, JsonData>)dictionary).TryGetValue(key, out value);
+        public override string ToString() => JsonSerializer.ConvertToText(this);
+        private string GetDebuggerDisplay() => ToString();
+
+        IEnumerator<JsonData> IEnumerable<JsonData>.GetEnumerator() => ((IEnumerable<JsonData>)Array).GetEnumerator();
+        IDictionaryEnumerator IDictionary.GetEnumerator()
+        => ((IDictionary)dictionary).GetEnumerator();
+
+        IEnumerator<KeyValuePair<JsonData, JsonData>> IEnumerable<KeyValuePair<JsonData, JsonData>>.GetEnumerator()
+        => ((IEnumerable<KeyValuePair<JsonData, JsonData>>)dictionary).GetEnumerator();
+        public static bool operator ==(JsonData a,JsonData b)
+        {
+            return a.Equals(b);
+        }
+        public static bool operator !=(JsonData a, JsonData b)
+        {
+            return !a.Equals(b);
         }
     }
 }
