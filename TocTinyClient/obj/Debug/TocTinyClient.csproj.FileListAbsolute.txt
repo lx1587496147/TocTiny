@@ -63,7 +63,6 @@ C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyClient\obj\Debug
 C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyClient\bin\Debug\TocTinyClient.exe.config
 C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyClient\bin\Debug\TocTinyClient.exe
 C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyClient\bin\Debug\TocTinyClient.pdb
-C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyClient\obj\Debug\App.baml
 C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyClient\obj\Debug\MainChat.baml
 C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyClient\obj\Debug\Login.baml
 C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyClient\obj\Debug\FrameHost.baml
@@ -127,3 +126,8 @@ C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyClient\bin\Debug
 C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyClient\bin\Debug\zh-Hans\System.Windows.Interactivity.resources.dll
 C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyClient\bin\Debug\zh-Hant\System.Windows.Interactivity.resources.dll
 C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyClient\bin\Debug\UI\UIMask1.tif
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyClient\obj\Debug\UI\MyButton1.g.cs
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyClient\obj\Debug\UI\MyButton.g.cs
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyClient\obj\Debug\GeneratedInternalTypeHelper.g.cs
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyClient\obj\Debug\UI\MyButton1.baml
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyClient\obj\Debug\UI\MyButton.baml

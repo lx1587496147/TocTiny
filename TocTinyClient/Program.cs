@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Windows;
 using TocTinyClient;
+using Microsoft.Win32;
+using System.Windows.Media;
 
 namespace TocTiny
 {
@@ -33,24 +35,22 @@ namespace TocTiny
         {
             GetMianWindow().Frame.Navigate(page);
         }
-
+        public static Color ConvertToColor(int value)
+        {
+            return Color.FromArgb(
+                (byte)(value >> 24),
+                (byte)(value >> 16),
+                (byte)(value >> 8),
+                (byte)value
+            );
+        }
+        public static Color GetSystemColor()
+        {
+            return ConvertToColor((int)Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\DWM").GetValue("AccentColor"));
+        }
         public static FrameHost GetMianWindow()
         {
             return (App.Current.MainWindow as FrameHost);
-        }
-        public static void a()
-        {
-            FrameHost framehost = new FrameHost() { Height=114514,Title="下北泽高速电车"};
-            framehost.ShowDialog();
-            framehost.Close();
-        }
-        public static void n()
-        {
-            FrameHost framehost = new FrameHost();
-            framehost.Height = 114514;
-            framehost.Title = "下北泽高速电车";
-            framehost.ShowDialog();
-            framehost.Close();
         }
     }
 }

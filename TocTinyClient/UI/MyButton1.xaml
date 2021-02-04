@@ -1,0 +1,35 @@
+﻿<Grid x:Class="TocTinyClient.UI.MyButton1"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:TocTinyClient.UI" Width="46" Cursor="Hand">
+    <Grid.Triggers>
+        <EventTrigger RoutedEvent="Grid.MouseEnter">
+            <BeginStoryboard>
+                <Storyboard>
+                    <ColorAnimation
+																		Storyboard.TargetName="Path"
+																		Storyboard.TargetProperty="(Path.Fill).(SolidColorBrush.Color)"
+																		To="#B9FF0000"
+																		Duration="0:0:0.1"/>
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+        <EventTrigger RoutedEvent="Grid.MouseLeave">
+            <BeginStoryboard>
+                <Storyboard>
+                    <ColorAnimation
+																		Storyboard.TargetName="Path"
+																		Storyboard.TargetProperty="(Path.Fill).(SolidColorBrush.Color)"
+																		To="#01FFFFFF"
+																		Duration="0:0:0.1"/>
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+    </Grid.Triggers>
+    <Rectangle x:Name="Path"
+														Fill="#01FFFFFF"
+														Stretch="Fill"
+														Opacity="1" />
+</Grid>

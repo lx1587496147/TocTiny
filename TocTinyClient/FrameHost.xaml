@@ -3,40 +3,45 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:TocTinyClient" xmlns:ee="http://schemas.microsoft.com/expression/2010/effects" x:Class="TocTinyClient.FrameHost"
+        xmlns:local="clr-namespace:TocTinyClient" xmlns:ee="http://schemas.microsoft.com/expression/2010/effects" xmlns:ui="clr-namespace:TocTinyClient.UI" x:Class="TocTinyClient.FrameHost"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
-        mc:Ignorable="d"
+        mc:Ignorable="d" MouseDown="Window_MouseDown" MouseUp="Window_MouseUp"
         Height="710" Width="1044" Activated="Window_Activated" Deactivated="Window_Deactivated">
-	<Border x:Name="MianBorder" Background="White" CornerRadius="3" Margin="5" BorderThickness="1">
-		<Border.Effect>
-			<DropShadowEffect Direction="0" BlurRadius="5" ShadowDepth="1" Opacity="0.25"/>
-		</Border.Effect>
-		<Grid>
-			<Border CornerRadius="2.5,2.5,0,0" x:Name="Tab" MouseLeftButtonDown="Grid_MouseLeftButtonDown" Grid.Row="0" Background="White" Height="32" VerticalAlignment="Top"/>
-			<Grid Margin="3">
-				<Grid.RowDefinitions>
-					<RowDefinition Height="32"/>
-					<RowDefinition Height="1*"/>
-				</Grid.RowDefinitions>
-				<Grid x:Name="TabCtl">
-					<Rectangle Fill="White" HorizontalAlignment="Right" Width="134">
-						<Rectangle.OpacityMask>
-							<ImageBrush ImageSource="pack://siteoforigin:,,,/UI/UIMask1.tif"/>
-						</Rectangle.OpacityMask>
-
-					</Rectangle>
-					<ContentControl HorizontalAlignment="Left" Margin="5,-3,0,0">
-						<TextBlock Text="TocTiny" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-					</ContentControl>
-					<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,-3,0,0">
-						<TextBlock Background="#017F7F7F" Width="46" MouseDown="Button_Click_1"/>
-						<TextBlock Background="#017F7F7F" Width="46" MouseDown="Button_Click_2"/>
-						<TextBlock Background="#017F7F7F" Width="46" MouseDown="Button_Click_3"/>
-					</StackPanel>
-					<Label HorizontalAlignment="Left" Width="9" Height="10" VerticalAlignment="Top" Background="#01FFFFFF" BorderBrush="{x:Null}" Foreground="{x:Null}" MouseDown="Button_Click"/>
-				</Grid>
-				<Frame x:Name="Frame" NavigationUIVisibility="Hidden" Grid.Row="1" Navigating="Frame_Navigating"/>
-			</Grid>
-		</Grid>
-	</Border>
+    <Grid>
+        <!--辅助Rectangle-->
+        <Rectangle x:Name="BottomRect" Fill="#01FFFFFF" Height="5" VerticalAlignment="Bottom" Cursor="SizeNS"/>
+        <Rectangle x:Name="LeftRect" Fill="#01FFFFFF" Width="5" HorizontalAlignment="Right" Cursor="SizeWE"/>
+        <!--主Border-->
+        <Border x:Name="MianBorder" Background="White" CornerRadius="3" Margin="5" BorderThickness="1">
+            <Border.Effect>
+                <DropShadowEffect Direction="0" BlurRadius="5" ShadowDepth="1" Opacity="0.25"/>
+            </Border.Effect>
+            <Grid>
+                <Border CornerRadius="3,3,0,0" x:Name="Tab" MouseLeftButtonDown="Grid_MouseLeftButtonDown" Grid.Row="0" Background="White" Height="32" VerticalAlignment="Top"/>
+                <Grid Margin="3">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="32"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+                    <Grid x:Name="TabCtl">
+                        <ContentControl HorizontalAlignment="Left" Margin="5,-3,0,0">
+                            <TextBlock Text="TocTiny" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </ContentControl>
+                        <Rectangle Fill="White" HorizontalAlignment="Right" Width="134">
+                            <Rectangle.OpacityMask>
+                                <ImageBrush ImageSource="pack://siteoforigin:,,,/UI/UIMask1.tif"/>
+                            </Rectangle.OpacityMask>
+                        </Rectangle>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,-3,0,3">
+                            <ui:MyButton MouseDown="Button_Click_1"/>
+                            <ui:MyButton MouseDown="Button_Click_2"/>
+                            <ui:MyButton1 MouseDown="Button_Click_3"/>
+                        </StackPanel>
+                        <Label HorizontalAlignment="Left" Width="9" Height="10" VerticalAlignment="Top" Background="#01FFFFFF" BorderBrush="{x:Null}" Foreground="{x:Null}" MouseDown="Button_Click"/>
+                    </Grid>
+                    <Frame x:Name="Frame" NavigationUIVisibility="Hidden" Grid.Row="1"/>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
 </Window>
