@@ -44,7 +44,7 @@ namespace Null.Library.EventedSocket
             this.bufferSize = bufferSize;
             server.Bind(new IPEndPoint(IPAddress.Any, port));
             server.Listen(backlog);
-            ListenTask = Task.Run(AcceptAction);
+            ListenTask = Task.Factory.StartNew(AcceptAction);
         }
         /// <summary>
         /// 停止监听
@@ -68,7 +68,7 @@ namespace Null.Library.EventedSocket
             {
                 Socket client = server.Accept();
                 ClientConnected.Invoke(this, client);
-                workingSockets.Add((Task.Run(() => ReceiveAction(client)), client));
+                workingSockets.Add((Task.Factory.StartNew(() => ReceiveAction(client)), client));
             }
         }
 
@@ -116,7 +116,7 @@ namespace Null.Library.EventedSocket
         }
 
     }
-    public class SocketClient
+    [Obsolete("将会使用TocTinyService重构")]public class SocketClient
     {
         /// <summary>
         /// 基础Socket
@@ -139,7 +139,7 @@ namespace Null.Library.EventedSocket
         {
             server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             server.Connect(address);
-            ListenTask= Task.Run(() => this.ReceiveAction());
+            ListenTask= Task.Factory.StartNew(() => this.ReceiveAction());
         }
         public object Tag { get; set; }
         public event SocketRecvMsgHandler ReceivedMsg;

@@ -39,6 +39,8 @@ namespace TocTiny
 
             public string NAME = "TOC Tiny Chat Room";
 
+
+
             public string USERJSONPATH = "Users.json"; //指定用户JSON路径
 
             public bool NOCOLOR = false;           // string color : 是否开启控制台的消息文本高亮
@@ -212,16 +214,23 @@ namespace TocTiny
                 Environment.Exit(-2);
             }
         }
-        private static void DisposePartsBuffer(Socket socket)
-        {
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            SafeWriteLine($"PartsBuffer Disposed: {socket.RemoteEndPoint}");
-        }
         private static void DealCommand(string cmd)
         {
+            if (string.IsNullOrWhiteSpace(cmd)) { return; }
             if (cmd.StartsWith("/"))
             {
+                switch (cmd.ToLower().Substring(0,5))
+                {
+                    case "/help":
 
+                    case "/cusr":
+                        string[] args = cmd.Split(" ");
+                        UserList.Add(new User() { Guid = Guid.NewGuid().ToString(), PasswordHash = args[2].GetHashCode(), Name = args[1] });
+                        SaveUser(USERJSONPATH);
+                        break;
+                    default:
+                        break;
+                }
             }
             else
             {
@@ -359,87 +368,7 @@ namespace TocTiny
             {
                 if (string.IsNullOrWhiteSpace(recvPackage.ClientGuid))
                 {
-                    if (recvPackage.PackageType == ConstDef.NormalMessage)
-                    {
-                        string[] args = recvPackage.Content.Split(' ');
-                        if (args.Length == 2)
-                        {
-                            switch (args[0])
-                            {
-                                case "/login":
-                                    recvPackage.PackageType = ConstDef.Login;
-                                    recvPackage.Content = args[1];
-                                    break;
-                                case "/register":
-                                    recvPackage.PackageType = ConstDef.Register;
-                                    recvPackage.Content = args[1];
-                                    break;
-                                default:
-                                    SendMustLoginInfo(socket);
-                                    return;
-                            }
-                        }
-                        else
-                        {
-                            SendMustLoginInfo(socket);
-                            return;
-                        }
-                    }
-                    User user = UserList.Find((u) => u.Name == recvPackage.Name);
-                    switch (recvPackage.PackageType)
-                    {
-                        case ConstDef.Login:
-                            if (user != null)
-                            {
-                                if (user.PasswordHash == recvPackage.Content.GetHashCode())
-                                {
-                                    socket.SendTOC(
-                                        Encoding.UTF8.GetBytes(
-                                            JsonSerializer.ConvertToText(
-                                                JsonSerializer.Create(new TransPackage()
-                                                {
-                                                    Name = "Server",
-                                                    Content = user.Guid,
-                                                    ClientGuid = "Server",
-                                                    PackageType = ConstDef.Login
-                                                }))));
-                                    WelcomeUser(recvPackage, socket);
-                                }
-                                else
-                                {
-                                    SendErrorPasswordNotCorrent(socket);
-                                }
-                            }
-                            else
-                            {
-                                SendErrorUserDoesntExist(socket);
-                            }
-                            break;
-                        case ConstDef.Register:
-                            if (user == null)
-                            {
-                                User newuser = CreateUser(recvPackage);
-                                socket.SendTOC(
-                                    Encoding.UTF8.GetBytes(
-                                        JsonSerializer.ConvertToText(
-                                            JsonSerializer.Create(new TransPackage()
-                                            {
-                                                Name = "Server",
-                                                Content = newuser.Guid,
-                                                ClientGuid = "Server",
-                                                PackageType = ConstDef.Login
-                                            }))));
-                                WelcomeUser(recvPackage, socket);
-                            }
-                            else
-                            {
-                                SendErrorUserExisted(socket);
-                            }
-                            break;
-                        default:
-                            SendMustLoginInfo(socket);
-                            return;
-                    }
+                    DealPackageUnlogin(recvPackage, socket);
                     return;
                 }
                 switch (recvPackage.PackageType)
@@ -592,6 +521,88 @@ namespace TocTiny
             }
         }      // 处理消息 (主函数
 
+        private static void DealPackageUnlogin(TransPackage recvPackage, Socket socket)
+        {
+            if (recvPackage.PackageType == ConstDef.NormalMessage)
+            {
+                string[] args = recvPackage.Content.Split(' ');
+                if (args.Length == 2)
+                {
+                    switch (args[0])
+                    {
+                        case "/login":
+                            recvPackage.PackageType = ConstDef.Login;
+                            recvPackage.Content = args[1];
+                            break;
+                        default:
+                            SendMustLoginInfo(socket);
+                            return;
+                    }
+                }
+                else
+                {
+                    SendMustLoginInfo(socket);
+                    return;
+                }
+            }
+            User user = UserList.Find((u) => u.Name == recvPackage.Name);
+            switch (recvPackage.PackageType)
+            {
+                case ConstDef.Login:
+                    if (user != null)
+                    {
+                        if (user.PasswordHash == recvPackage.Content.GetHashCode())
+                        {
+                            socket.SendTOC(
+                                Encoding.UTF8.GetBytes(
+                                    JsonSerializer.ConvertToText(
+                                        JsonSerializer.Create(new TransPackage()
+                                        {
+                                            Name = "Server",
+                                            Content = user.Guid,
+                                            ClientGuid = "Server",
+                                            PackageType = ConstDef.Login
+                                        }))));
+                            WelcomeUser(recvPackage, socket);
+                        }
+                        else
+                        {
+                            SendErrorPasswordNotCorrent(socket);
+                        }
+                    }
+                    else
+                    {
+                        SendErrorUserDoesntExist(socket);
+                    }
+                    break;
+                case ConstDef.Register:
+                    if (user == null)
+                    {
+                        User newuser = CreateUser(recvPackage);
+                        socket.SendTOC(
+                            Encoding.UTF8.GetBytes(
+                                JsonSerializer.ConvertToText(
+                                    JsonSerializer.Create(new TransPackage()
+                                    {
+                                        Name = "Server",
+                                        Content = newuser.Guid,
+                                        ClientGuid = "Server",
+                                        PackageType = ConstDef.Login
+                                    }))));
+                        WelcomeUser(recvPackage, socket);
+                    }
+                    else
+                    {
+                        SendErrorUserExisted(socket);
+                    }
+                    break;
+                default:
+                    SendMustLoginInfo(socket);
+                    return;
+            }
+            return;
+        }
+
         private static void SendErrorPasswordNotCorrent(Socket socket)
         {
             socket.SendTOC(
@@ -679,8 +690,7 @@ namespace TocTiny
                                 Name = "Server",
                                 Content = $"You must be logged in to send messages on the remote server.\r\n" +
                                 $"If you were using old TocTiny,\r\n" +
-                                $"you can try to send \"/login (password here)\"\r\n" +
-                                $"or \"/register (password here)\"",
+                                $"you can try to send \"/login (password here)\"\r\n",
                                 ClientGuid = "Server",
                                 PackageType = ConstDef.NormalMessage
                             }))));

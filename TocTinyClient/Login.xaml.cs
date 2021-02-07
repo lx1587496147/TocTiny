@@ -1,8 +1,11 @@
-﻿using Null.Library.EventedSocket;
+﻿using CHO.Json;
+using Null.Library.EventedSocket;
 using System;
 using System.Net;
+using System.Text;
 using System.Threading;
 using System.Windows;
+using TocTinyClient;
 
 namespace TocTiny
 {
@@ -48,6 +51,11 @@ namespace TocTiny
                     MainChat page = new MainChat(this);
                     selfClient.Tag = page;
                     SelfClient.ConnectTo(new IPEndPoint(param.IPAddress, param.Port), param.BufferSize);
+                    SelfClient.Send(Encoding.UTF8.GetBytes(JsonSerializer.ConvertToText(JsonSerializer.Create(new TransPackage() 
+                    { Name = NickName,
+                    PackageType = ConstDef.Login,
+                    Content = PasswordBox.Password
+                    }))));
                     SelfClient.ReceivedMsg += page.SelfClient_ReceivedMsg;
                     SelfClient.Disconnected += page.SelfClient_Disconnected;
                     Program.Navigate(page);
@@ -129,6 +137,11 @@ namespace TocTiny
         private void CancelLoginClick(object sender, RoutedEventArgs e)
         {
             Environment.Exit(0);
+        }
+
+        private void Hyperlink_Click(object sender, RoutedEventArgs e)
+        {
+            Program.Navigate(new Register());
         }
     }
 }

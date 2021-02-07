@@ -929,15 +929,12 @@ namespace CHO.Json
     /// 单个Json数据
     /// </summary>
     [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
-    public struct JsonData : IList<JsonData>,ICollection<JsonData>,IList,ICollection,IEnumerable,IDictionary,IReadOnlyDictionary<JsonData,JsonData>,IDictionary<JsonData,JsonData>
+    public struct JsonData : IList<JsonData>,ICollection<JsonData>,IList,ICollection,IEnumerable,IDictionary,IDictionary<JsonData,JsonData>
     {
         internal object content;
 
         public object this[int index] { get => ((IList)Array)[index]; set => ((IList)Array)[index] = value; }
         public object this[object key] { get => ((IDictionary)dictionary)[key]; set => ((IDictionary)dictionary)[key] = value; }
-
-        public JsonData this[JsonData key] => ((IReadOnlyDictionary<JsonData, JsonData>)dictionary)[key];
-
         JsonData IList<JsonData>.this[int index] { get => ((IList<JsonData>)Array)[index]; set => ((IList<JsonData>)Array)[index] = value; }
         JsonData IDictionary<JsonData, JsonData>.this[JsonData key] { get => ((IDictionary<JsonData, JsonData>)dictionary)[key]; set => ((IDictionary<JsonData, JsonData>)dictionary)[key] = value; }
 
@@ -970,12 +967,7 @@ namespace CHO.Json
         public ICollection Keys => ((IDictionary)dictionary).Keys;
 
         public ICollection Values => ((IDictionary)dictionary).Values;
-
-        IEnumerable<JsonData> IReadOnlyDictionary<JsonData, JsonData>.Keys => ((IReadOnlyDictionary<JsonData, JsonData>)dictionary).Keys;
-
         ICollection<JsonData> IDictionary<JsonData, JsonData>.Keys => ((IDictionary<JsonData, JsonData>)dictionary).Keys;
-
-        IEnumerable<JsonData> IReadOnlyDictionary<JsonData, JsonData>.Values => ((IReadOnlyDictionary<JsonData, JsonData>)dictionary).Values;
 
         ICollection<JsonData> IDictionary<JsonData, JsonData>.Values => ((IDictionary<JsonData, JsonData>)dictionary).Values;
 
@@ -1017,7 +1009,9 @@ namespace CHO.Json
         => ((ICollection<KeyValuePair<JsonData, JsonData>>)dictionary).Contains(item);
 
         public bool ContainsKey(JsonData key)
-        => ((IReadOnlyDictionary<JsonData, JsonData>)dictionary).ContainsKey(key);
+        {
+            return ((IDictionary<JsonData, JsonData>)dictionary).ContainsKey(key);
+        }
 
         public void CopyTo(Array array, int index)
         {
@@ -1073,10 +1067,13 @@ namespace CHO.Json
         {
             ((IList)Array).RemoveAt(index);
         }
+        public override string ToString() => JsonSerializer.ConvertToText(this);
 
         public bool TryGetValue(JsonData key, out JsonData value)
-        => ((IReadOnlyDictionary<JsonData, JsonData>)dictionary).TryGetValue(key, out value);
-        public override string ToString() => JsonSerializer.ConvertToText(this);
+        {
+            return ((IDictionary<JsonData, JsonData>)dictionary).TryGetValue(key, out value);
+        }
+
         private string GetDebuggerDisplay() => ToString();
 
         IEnumerator<JsonData> IEnumerable<JsonData>.GetEnumerator() => ((IEnumerable<JsonData>)Array).GetEnumerator();

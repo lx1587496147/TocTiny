@@ -97,7 +97,7 @@ namespace TocTinyClient.Theme
                 case ThemeEnum.AERO:
                     uri =
                         new Uri(
-                            "/PresentationFramework.Aero, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35;component/themes/aero.normalcolor.xaml",
+                            "/PresentationFramework.Aero2, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35;component/themes/aero2.normalcolor.xaml",
                             UriKind.Relative);
                     break;
             }

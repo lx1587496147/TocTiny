@@ -1,0 +1,71 @@
+﻿<Page x:Class="TocTinyWPF.View.Login"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity" 
+      xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"
+      xmlns:local="clr-namespace:TocTinyWPF.View" xmlns:viewmodel="clr-namespace:TocTinyWPF.ViewModel"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800"
+      x:Name="LoginPage">
+
+    <Grid>
+        <Grid.DataContext>
+            <viewmodel:LoginViewModel x:Name="ViewModel"/>
+        </Grid.DataContext>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="3*"/>
+            <RowDefinition Height="1*"/>
+        </Grid.RowDefinitions>
+        <Label Grid.Row="0" Content="TOC Tiny" FontSize="30" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="20,0,0,0" Width="220" BorderThickness="0,0,0,2" BorderBrush="#000"/>
+        <Grid Grid.Row="1" Margin="40,20,40,20">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+
+            <Grid Grid.Row="0" VerticalAlignment="Center">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Label Content="Nick name:" VerticalAlignment="Bottom"/>
+                <TextBox Text="{Binding NickName,Converter={StaticResource unnull}}" Grid.Row="1" TabIndex="1" Padding="5,0" VerticalContentAlignment="Center" HorizontalContentAlignment="Stretch" Height="35" Margin="0,0,5,0"></TextBox>
+            </Grid>
+            <Grid Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" >
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Label Content="Password:" VerticalAlignment="Bottom"/>
+                <TextBox Text="{Binding Password,Converter={StaticResource unnull}}" Grid.Row="1" TabIndex="1" Padding="5,0" VerticalContentAlignment="Center" HorizontalContentAlignment="Stretch" Height="35" Margin="5,0,0,0"></TextBox>
+            </Grid>
+            <Grid Grid.Row="1" Grid.Column="0" VerticalAlignment="Center">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Label Content="Server address:" VerticalAlignment="Bottom"/>
+                <TextBox Text="{Binding RemoteServer,Mode=TwoWay,Converter={StaticResource ipcvt}}" TabIndex="2" Grid.Row="1" Padding="5,0" VerticalContentAlignment="Center" HorizontalContentAlignment="Stretch" Margin="0,0,5,0" Height="35"></TextBox>
+            </Grid>
+            <Grid Grid.Row="2" Grid.Column="1" VerticalAlignment="Center">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Label Content="Remote port:" VerticalAlignment="Bottom"/>
+                <TextBox Text="{Binding ServerPort}" TabIndex="3" Grid.Row="1" Padding="5,0" VerticalContentAlignment="Center" HorizontalContentAlignment="Stretch" Margin="5,0,0,0" Height="35"></TextBox>
+            </Grid>
+        </Grid>
+        <Grid Grid.Row="2">
+            <Button VerticalAlignment="Center" HorizontalAlignment="Right" Width="100" Height="50" Margin="0,0,150,0" Content="Cancel" Click="Button_Click"/>
+            <Button VerticalAlignment="Center" HorizontalAlignment="Right" Width="100" Height="50" Margin="0,0,25,0" Content="Connect" Click="Button_Click_1"/>
+        </Grid>
+    </Grid>
+</Page>

@@ -1,0 +1,14 @@
+C:\Users\Administrator\source\repos\lx1587496147\TocTiny\TocTinyMVVM\obj\Debug\TocTinyMVVM.csprojAssemblyReference.cache
+C:\Users\Administrator\source\repos\lx1587496147\TocTiny\TocTinyMVVM\bin\Debug\TocTiny.exe
+C:\Users\Administrator\source\repos\lx1587496147\TocTiny\TocTinyMVVM\bin\Debug\TocTiny.pdb
+C:\Users\Administrator\source\repos\lx1587496147\TocTiny\TocTinyMVVM\obj\Debug\TocTiny.g.resources
+C:\Users\Administrator\source\repos\lx1587496147\TocTiny\TocTinyMVVM\obj\Debug\TocTinyMVVM.csproj.CoreCompileInputs.cache
+C:\Users\Administrator\source\repos\lx1587496147\TocTiny\TocTinyMVVM\obj\Debug\TocTiny.exe
+C:\Users\Administrator\source\repos\lx1587496147\TocTiny\TocTinyMVVM\obj\Debug\TocTiny.pdb
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyMVVM\bin\Debug\Microsoft.Expression.Controls.xml
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyMVVM\bin\Debug\Microsoft.Expression.Drawing.xml
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyMVVM\bin\Debug\Microsoft.Expression.Effects.xml
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyMVVM\bin\Debug\Microsoft.Expression.Interactions.xml
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyMVVM\bin\Debug\System.Windows.Interactivity.xml
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyMVVM\obj\Debug\TocTinyMVVM.csproj.Fody.CopyLocal.cache
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyMVVM\obj\Debug\TocTinyMVVM.csproj.CopyComplete
