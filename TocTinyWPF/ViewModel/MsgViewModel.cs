@@ -3,7 +3,7 @@ using System.Windows.Documents;
 
 namespace TocTinyWPF.ViewModel
 {
-    class MsgViewModel
+    internal class MsgViewModel
     {
         /// <summary>
         /// 发言者

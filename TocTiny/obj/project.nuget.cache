@@ -1,8 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "/1NOuJa8pAbpI22lRMY1tfk09dWxg3S1vihQ4ObJAol+JaK6q3+mM5xqOvaKkOBlOVhJc4AdLugp+1hiZj2SHg==",
+  "dgSpecHash": "BBLZEpJpOZVU5SaIEf/vZht6Qkcpyr2fTP+Ui7vDJwAEP90Cg8QeCnU8Yp7SiOvNP6YlKeN4dT5Q5caLC1whOg==",
   "success": true,
   "projectFilePath": "C:\\Users\\Administrator\\Source\\Repos\\lx1587496147\\TocTiny\\TocTiny\\TocTiny.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\Administrator\\.nuget\\packages\\microsoft.netcore.platforms\\5.0.0\\microsoft.netcore.platforms.5.0.0.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\microsoft.win32.systemevents\\5.0.0\\microsoft.win32.systemevents.5.0.0.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\system.drawing.common\\5.0.1\\system.drawing.common.5.0.1.nupkg.sha512"
+  ],
   "logs": []
 }

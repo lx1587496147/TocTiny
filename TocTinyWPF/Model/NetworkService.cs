@@ -1,46 +1,76 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
+using TOCPackage = TocTinyWPF.Package.SizePackage<TocTinyWPF.Package.TOCPackage>;
 
 namespace TocTinyWPF.Model
 {
-    class NetworkService
+    internal class NetworkService
     {
-        private Socket socket;
-        private Task tsk;
-        private bool tskcancel;
-        public void Connect(IPAddress ip,int port)
+        public NetworkService()
         {
-            socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            socket.Connect(ip, port);
+            NetworkFailed = (s, e) => {  };
+        }
+        public event EventHandler NetworkFailed;
+        private TcpClient socket;
+        private Stream nwkstm;
+        private bool tskcancel;
+        public void Connect(IPAddress ip, int port)
+        {
+            try
+            {
+                socket = new TcpClient();
+                socket.Connect(ip, port);
+                nwkstm =Stream.Synchronized( socket.GetStream());
+            }
+            catch
+            {
+                OnNetworkFailed();
+            }
+        }
+        private void OnNetworkFailed()
+        {
+            NetworkFailed.Invoke(this, new EventArgs());
         }
         public void Start()
         {
-            tsk = Task.Factory.StartNew(() => 
+            Task.Factory.StartNew(() =>
             {
                 while (!tskcancel)
                 {
-                    SocketTransportPackage package = SocketTransportPackage.CreateFromSocket(socket);
-                    package = package ?? new SocketTransportPackage();
-                    PackageReviced.Invoke(this, new Eventarg.PackageRevicedEventArgs() { Package = package });
+                    try
+                    {
+                        TOCPackage package = TOCPackage.CreateFromStream(nwkstm);
+                        package = package ?? new TOCPackage();
+                        PackageReviced.Invoke(this, package);
+                    }
+                    catch
+                    {
+                        OnNetworkFailed();
+                        break;
+                    }
                 }
             });
         }
-        public void Send(TransportPackage package)
+        public void Send(Package.TOCPackage package)
         {
-            SocketTransportPackage package1 = new SocketTransportPackage
+            try
             {
-                Load = package
-            };
-            package1.WriteToSocket(socket);
+                TOCPackage package1 = new TOCPackage
+                {
+                    Load = package
+                };
+                byte[] vs = package1.ToBytes();
+                nwkstm.Write(vs,0,vs.Length);
+            }
+            catch
+            {
+                OnNetworkFailed();
+            }
         }
-        public event EventHandler<Eventarg.PackageRevicedEventArgs> PackageReviced;
+        public event EventHandler<TOCPackage> PackageReviced;
         public void Close()
         {
             tskcancel = true;

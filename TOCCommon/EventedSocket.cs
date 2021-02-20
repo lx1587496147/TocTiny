@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Null.Library.EventedSocket
@@ -14,7 +13,7 @@ namespace Null.Library.EventedSocket
     public class SocketServer
     {
         private Socket server;                                               // 用来接受连接的套接字
-        private List<(Task, Socket)> workingSockets =new List<(Task,Socket)>();
+        private readonly List<(Task, Socket)> workingSockets = new List<(Task, Socket)>();
         private int bufferSize;
         /// <summary>
         /// 基础Socket
@@ -116,7 +115,8 @@ namespace Null.Library.EventedSocket
         }
 
     }
-    [Obsolete("将会使用TocTinyService重构")]public class SocketClient
+    [Obsolete("将会使用TocTinyService重构")]
+    public class SocketClient
     {
         /// <summary>
         /// 基础Socket
@@ -125,7 +125,7 @@ namespace Null.Library.EventedSocket
         /// <summary>
         /// 获得连接到服务器的Sokcet
         /// </summary>
-        [Obsolete("为了兼容性请不要使用SocketToServer，请使用Send发送信息",true)]public Socket SocketToServer => server;
+        [Obsolete("为了兼容性请不要使用SocketToServer，请使用Send发送信息", true)] public Socket SocketToServer => server;
         /// <summary>
         /// 获得监听Socket的任务
         /// </summary>
@@ -139,7 +139,7 @@ namespace Null.Library.EventedSocket
         {
             server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             server.Connect(address);
-            ListenTask= Task.Factory.StartNew(() => this.ReceiveAction());
+            ListenTask = Task.Factory.StartNew(() => ReceiveAction());
         }
         public object Tag { get; set; }
         public event SocketRecvMsgHandler ReceivedMsg;
@@ -205,11 +205,11 @@ namespace Null.Library.EventedSocket
 }
 public static class SocketExt
 {
-    public static int SendTOC(this Socket socket,byte[] buffer)
+    public static int SendTOC(this Socket socket, byte[] buffer)
     {
         return SendTOC(socket, buffer, buffer.Length, SocketFlags.None);
     }
-    public static int SendTOC(this Socket socket, byte[] buffer,int size,SocketFlags socketFlags)
+    public static int SendTOC(this Socket socket, byte[] buffer, int size, SocketFlags socketFlags)
     {
         byte[] nbuffer = new byte[0] { };
         int length = size;

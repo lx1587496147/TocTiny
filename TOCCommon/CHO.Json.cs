@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -879,7 +878,7 @@ namespace CHO.Json
                 else if (obj is double)
                 {
                     result.DataType = JsonDataType.Double;
-                    result.content = obj; 
+                    result.content = obj;
                     return result;
                 }
                 else if (obj is IDictionary)
@@ -929,7 +928,7 @@ namespace CHO.Json
     /// 单个Json数据
     /// </summary>
     [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
-    public struct JsonData : IList<JsonData>,ICollection<JsonData>,IList,ICollection,IEnumerable,IDictionary,IDictionary<JsonData,JsonData>
+    public struct JsonData : IList<JsonData>, ICollection<JsonData>, IList, ICollection, IEnumerable, IDictionary, IDictionary<JsonData, JsonData>
     {
         internal object content;
 
@@ -938,7 +937,7 @@ namespace CHO.Json
         JsonData IList<JsonData>.this[int index] { get => ((IList<JsonData>)Array)[index]; set => ((IList<JsonData>)Array)[index] = value; }
         JsonData IDictionary<JsonData, JsonData>.this[JsonData key] { get => ((IDictionary<JsonData, JsonData>)dictionary)[key]; set => ((IDictionary<JsonData, JsonData>)dictionary)[key] = value; }
 
-        public JsonDataType DataType { get ; internal set; }
+        public JsonDataType DataType { get; internal set; }
         /// <summary>
         /// 从包含Array类型Json数据的JsonData实例中获取所包含的数据
         /// </summary>
@@ -947,7 +946,7 @@ namespace CHO.Json
         /// <summary>
         /// 从包含Object类型Json数据的JsonData实例中获取所包含的数据
         /// </summary>
-        public Dictionary<JsonData,JsonData> dictionary => DataType == JsonDataType.Object ? (Dictionary<JsonData,JsonData>)content : throw new JsonDataTypeException("所访问数据不是Object类型");
+        public Dictionary<JsonData, JsonData> dictionary => DataType == JsonDataType.Object ? (Dictionary<JsonData, JsonData>)content : throw new JsonDataTypeException("所访问数据不是Object类型");
         /// <summary>
         /// 从包含Json数据的JsonData实例中获取所包含的数据
         /// </summary>
@@ -972,7 +971,9 @@ namespace CHO.Json
         ICollection<JsonData> IDictionary<JsonData, JsonData>.Values => ((IDictionary<JsonData, JsonData>)dictionary).Values;
 
         public int Add(object value)
-        => ((IList)Array).Add(value);
+        {
+            return ((IList)Array).Add(value);
+        }
 
         public void Add(JsonData item)
         {
@@ -1000,13 +1001,19 @@ namespace CHO.Json
         }
 
         public bool Contains(object value)
-        => ((IList)Array).Contains(value);
+        {
+            return ((IList)Array).Contains(value);
+        }
 
         public bool Contains(JsonData item)
-        => ((ICollection<JsonData>)Array).Contains(item);
+        {
+            return ((ICollection<JsonData>)Array).Contains(item);
+        }
 
         public bool Contains(KeyValuePair<JsonData, JsonData> item)
-        => ((ICollection<KeyValuePair<JsonData, JsonData>>)dictionary).Contains(item);
+        {
+            return ((ICollection<KeyValuePair<JsonData, JsonData>>)dictionary).Contains(item);
+        }
 
         public bool ContainsKey(JsonData key)
         {
@@ -1028,19 +1035,28 @@ namespace CHO.Json
         }
 
         public IEnumerator GetEnumerator()
-        => ((IEnumerable)Array).GetEnumerator();
+        {
+            return ((IEnumerable)Array).GetEnumerator();
+        }
 
         /// <summary>
         /// 获取JsonData实例所包含数据的HashCode
         /// </summary>
         /// <returns>int类型的HashCode值</returns>
-        public override int GetHashCode() => content.GetHashCode();
+        public override int GetHashCode()
+        {
+            return content.GetHashCode();
+        }
 
         public int IndexOf(object value)
-        => ((IList)Array).IndexOf(value);
+        {
+            return ((IList)Array).IndexOf(value);
+        }
 
         public int IndexOf(JsonData item)
-        => ((IList<JsonData>)Array).IndexOf(item);
+        {
+            return ((IList<JsonData>)Array).IndexOf(item);
+        }
 
         public void Insert(int index, object value)
         {
@@ -1058,31 +1074,50 @@ namespace CHO.Json
         }
 
         public bool Remove(JsonData item)
-        => ((ICollection<JsonData>)Array).Remove(item);
+        {
+            return ((ICollection<JsonData>)Array).Remove(item);
+        }
 
         public bool Remove(KeyValuePair<JsonData, JsonData> item)
-        => ((ICollection<KeyValuePair<JsonData, JsonData>>)dictionary).Remove(item);
+        {
+            return ((ICollection<KeyValuePair<JsonData, JsonData>>)dictionary).Remove(item);
+        }
 
         public void RemoveAt(int index)
         {
             ((IList)Array).RemoveAt(index);
         }
-        public override string ToString() => JsonSerializer.ConvertToText(this);
+        public override string ToString()
+        {
+            return JsonSerializer.ConvertToText(this);
+        }
 
         public bool TryGetValue(JsonData key, out JsonData value)
         {
             return ((IDictionary<JsonData, JsonData>)dictionary).TryGetValue(key, out value);
         }
 
-        private string GetDebuggerDisplay() => ToString();
+        private string GetDebuggerDisplay()
+        {
+            return ToString();
+        }
 
-        IEnumerator<JsonData> IEnumerable<JsonData>.GetEnumerator() => ((IEnumerable<JsonData>)Array).GetEnumerator();
+        IEnumerator<JsonData> IEnumerable<JsonData>.GetEnumerator()
+        {
+            return ((IEnumerable<JsonData>)Array).GetEnumerator();
+        }
+
         IDictionaryEnumerator IDictionary.GetEnumerator()
-        => ((IDictionary)dictionary).GetEnumerator();
+        {
+            return ((IDictionary)dictionary).GetEnumerator();
+        }
 
         IEnumerator<KeyValuePair<JsonData, JsonData>> IEnumerable<KeyValuePair<JsonData, JsonData>>.GetEnumerator()
-        => ((IEnumerable<KeyValuePair<JsonData, JsonData>>)dictionary).GetEnumerator();
-        public static bool operator ==(JsonData a,JsonData b)
+        {
+            return ((IEnumerable<KeyValuePair<JsonData, JsonData>>)dictionary).GetEnumerator();
+        }
+
+        public static bool operator ==(JsonData a, JsonData b)
         {
             return a.Equals(b);
         }

@@ -1,16 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using TocTinyWPF.Model;
 using TocTinyWPF.ViewModel;
 
@@ -25,7 +14,7 @@ namespace TocTinyWPF.View
         {
             InitializeComponent();
         }
-        private TocTinyModel model;
+        private MainChatModel model;
         private MainChatViewModel viewModel;
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
@@ -36,7 +25,13 @@ namespace TocTinyWPF.View
             }
             catch
             { }
-            model = new TocTinyModel(viewModel.RemoteServer, viewModel.ServerPort,viewModel.NickName, viewModel);
+            model = new MainChatModel(viewModel.RemoteServer, viewModel.ServerPort, viewModel.NickName, viewModel, Model_NetworkFailed);
+        }
+
+        private void Model_NetworkFailed(object sender, System.EventArgs e)
+        {
+            Popup.Visibility= Visibility.Visible;
+            Msgbox.Text = "网络连接丢失或中断";
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -46,5 +41,18 @@ namespace TocTinyWPF.View
             package.PackageType = (int)PackageType.NormalMessage;
             model.SendMessage(package);
         }
+
+        private void btn2_Click(object sender, RoutedEventArgs e)
+        {
+            (Application.Current.MainWindow.Content as Frame).GoBack();
+        }
+
+        private void TextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.Enter && (e.KeyboardDevice.IsKeyDown(System.Windows.Input.Key.LeftAlt) || e.KeyboardDevice.IsKeyDown(System.Windows.Input.Key.RigthAlt)))
+            {
+                Button_Click(sender, e);
+            } 
+         }
     }
 }

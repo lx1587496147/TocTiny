@@ -1,0 +1,49 @@
+﻿<Page x:Class="TocTinyWPF.View.ErrorPage"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TocTinyWPF.View"
+        mc:Ignorable="d"
+        Title="ErrorPage" Height="450" Width="800">
+    <Grid>
+        <ScrollViewer VerticalScrollBarVisibility="Hidden" Margin="0,0,0,150">
+            <StackPanel>
+                <TextBlock>
+                    <Run Text="非常抱歉，我们的TOC在运行时崩溃了"/>
+                    <LineBreak/>
+                    <Run Text="这个错误很有可能是意料之外的，也有可能是意料之内的"/>
+                    <LineBreak/>
+                    <Run Text="如果你愿意，可以留下你的QQ或者电话号码，我们将在1年内对你的反馈进行修改"/>
+                    <LineBreak/>
+                    <Run Text="当然也可以去Github:https://github.com/lx1587496147/TocTiny"/>
+                    <LineBreak/>
+                    <Run Text="或者你也可以加入我们的qq群:687864919进行维权"/>
+                    <LineBreak/>
+                    <Run Text="我们坚信，只要做出最差劲的客服态度，就能吸引使用者进行维权"/>
+                    <LineBreak/>
+                    <Run Text="相关信息："/><LineBreak/><InlineUIContainer>
+                        <Button Content="展开堆栈追踪" Click="Button_Click_2">
+                            <Button.Triggers>
+                                <EventTrigger RoutedEvent="Button.Click">
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <Int32Animation To="0" Storyboard.TargetProperty="Visibility" Storyboard.TargetName="dzzz"/>
+                                            <DoubleAnimation To="{Binding ElementName=dzzzclone,Path=ActualHeight}" Storyboard.TargetProperty="Height" Storyboard.TargetName="dzzz"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                 </EventTrigger>
+                            </Button.Triggers>
+                         </Button>
+                    </InlineUIContainer><LineBreak/><InlineUIContainer>
+                        <Grid>
+                                                    <TextBlock x:Name="dzzz" Visibility="Collapsed" Text="114514"/>
+                         <TextBlock x:Name="dzzzclone" Visibility="Hidden" Text="{Binding ElementName=dzzz,Path=Text}"/>
+                            </Grid>
+                    </InlineUIContainer>
+                    </TextBlock>
+            </StackPanel>
+        </ScrollViewer>
+        <TextBox Text="在此输入反馈，你的反馈将在一年内进行处理" Height="150" VerticalAlignment="Bottom"/>
+    </Grid>
+</Page>

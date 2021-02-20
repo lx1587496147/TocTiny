@@ -10,107 +10,118 @@
       d:DesignHeight="650" d:DesignWidth="800"
       Title="MainChat" Loaded="Page_Loaded">
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="40"/>
-            <RowDefinition Height="477*" MinHeight="50"/>
-            <RowDefinition Height="133*" MinHeight="100"/>
-        </Grid.RowDefinitions>
-        <Grid Grid.Column="0">
-            <Label Name="ChannelName" Margin="15,3,0,3" VerticalAlignment="Center" HorizontalAlignment="Left" Content="{Binding ChannelName}" Width="250" BorderBrush="#000" BorderThickness="0,0,0,1" FontSize="20"/>
-        </Grid>
-        <ScrollViewer Name="ChatScroller" Grid.Row="1" Background="White" CanContentScroll="False" VerticalScrollBarVisibility="Hidden">
-            <ContentControl Margin="0">
-                <StackPanel x:Name="Msgs"/>
-            </ContentControl>
-        </ScrollViewer>
-        <Grid Name="Stickers" Grid.Row="1" HorizontalAlignment="Left" Visibility="Collapsed">
-            <Grid.Resources>
-                <Style TargetType="ListView">
-                    <Setter Property="VerticalAlignment" Value="Bottom"/>
-                    <Setter Property="HorizontalAlignment" Value="Left"/>
-                    <Setter Property="Margin" Value="0"/>
-                </Style>
-            </Grid.Resources>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="1*"/>
-            </Grid.ColumnDefinitions>
-            <ListView Grid.Column="0"  Margin="0,0,0,0">
-                <ListViewItem Visibility="Collapsed"/>
-                <ListViewItem Content="(❁'◡`❁)"/>
-                <ListViewItem Content="╰(*°▽°*)╯"/>
-                <ListViewItem Content="q(≧▽≦q)"/>
-                <ListViewItem Content="φ(゜▽゜*)♪"/>
-                <ListViewItem Content="(oﾟvﾟ)ノ"/>
-            </ListView>
-            <ListView Grid.Column="1" BorderThickness="0,1,1,1">
-                <ListViewItem Visibility="Collapsed"/>
-                <ListViewItem Content="(づ￣ 3￣)づ"/>
-                <ListViewItem Content="||o(*°▽°*)o|Ю"/>
-                <ListViewItem Content="i(╯▽╰ )~"/>
-                <ListViewItem Content="o(〃＾▽＾〃)o"/>
-                <ListViewItem Content="(っ °Д °;)っ"/>
-            </ListView>
-            <ListView Grid.Column="2" BorderThickness="0,1,1,1">
-                <ListViewItem Visibility="Collapsed"/>
-                <ListViewItem Content="≧ ﹏ ≦"/>
-                <ListViewItem Content="(;'༎ຶД༎ຶ`)"/>
-                <ListViewItem Content="/(ㄒoㄒ)/~~"/>
-                <ListViewItem Content="╥﹏╥..."/>
-                <ListViewItem Content="〒▽〒"/>
-            </ListView>
-            <ListView Grid.Column="3" BorderThickness="0,1,1,1">
-                <ListViewItem Visibility="Collapsed"/>
-                <ListViewItem Content="(╬▔皿▔)╯"/>
-                <ListViewItem Content="ヽ（≧□≦）ノ"/>
-                <ListViewItem Content="┗|｀O′|┛"/>
-                <ListViewItem Content="(ノ｀Д)ノ"/>
-                <ListViewItem Content="(╬ﾟдﾟ)"/>
-            </ListView>
-            <ListView Grid.Column="4" BorderThickness="0,1,1,1">
-                <ListViewItem Visibility="Collapsed"/>
-                <ListViewItem Content="ε=( o｀ω′)ノ"/>
-                <ListViewItem Content="(=ﾟωﾟ)="/>
-                <ListViewItem Content="| ω・')"/>
-                <ListViewItem Content="(〃∀〃)"/>
-                <ListViewItem Content="(・ω・)"/>
-            </ListView>
-        </Grid>
-        <Grid Grid.Row="2">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition/>
-                </Grid.RowDefinitions>
-                <Border Grid.Row="0" HorizontalAlignment="Stretch" BorderBrush="#E8E8E8" BorderThickness="0,0,0,1">
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                        <StackPanel.Resources>
-                            <Style TargetType="Label">
-                                <Style.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background" Value="#EEE"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </StackPanel.Resources>
-                        <Label Padding="10,3" Content="Kaomoji"/>
-                        <Label Padding="10,3" Content="Picture"/>
-                        <Label Padding="10,3" Content="Attention"/>
-                        <Label Padding="10,3" Content="OnlineInfo"/>
-                        <Label Padding="10,3" Content="AdminTool"/>
-                        <Label Padding="10,3" Content="ServerInfo"/>
-                        
-                    </StackPanel>
-                </Border>
-                <TextBox Grid.Row="1" Text="{Binding SendText}" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" AllowDrop="True"
-                             TextWrapping="Wrap" Padding="3" BorderThickness="0" Background="#F5F6F7" 
-                             AcceptsReturn="True" AutoWordSelection="True" BorderBrush="White"/>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="0"/>
+                <RowDefinition Height="477*" MinHeight="50"/>
+                <RowDefinition Height="133*" MinHeight="100"/>
+            </Grid.RowDefinitions>
+            <ScrollViewer Name="ChatScroller" Grid.Row="1" CanContentScroll="False" VerticalScrollBarVisibility="Hidden">
+                <ContentControl Margin="0">
+                    <StackPanel x:Name="Msgs"/>
+                </ContentControl>
+            </ScrollViewer>
+            <Grid Name="Stickers" Grid.Row="1" HorizontalAlignment="Left" Visibility="Collapsed">
+                <Grid.Resources>
+                    <Style TargetType="ListView">
+                        <Setter Property="VerticalAlignment" Value="Bottom"/>
+                        <Setter Property="HorizontalAlignment" Value="Left"/>
+                        <Setter Property="Margin" Value="0"/>
+                    </Style>
+                </Grid.Resources>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+                <ListView Grid.Column="0"  Margin="0,0,0,0">
+                    <ListViewItem Visibility="Collapsed"/>
+                    <ListViewItem Content="(❁'◡`❁)"/>
+                    <ListViewItem Content="╰(*°▽°*)╯"/>
+                    <ListViewItem Content="q(≧▽≦q)"/>
+                    <ListViewItem Content="φ(゜▽゜*)♪"/>
+                    <ListViewItem Content="(oﾟvﾟ)ノ"/>
+                </ListView>
+                <ListView Grid.Column="1" BorderThickness="0,1,1,1">
+                    <ListViewItem Visibility="Collapsed"/>
+                    <ListViewItem Content="(づ￣ 3￣)づ"/>
+                    <ListViewItem Content="||o(*°▽°*)o|Ю"/>
+                    <ListViewItem Content="i(╯▽╰ )~"/>
+                    <ListViewItem Content="o(〃＾▽＾〃)o"/>
+                    <ListViewItem Content="(っ °Д °;)っ"/>
+                </ListView>
+                <ListView Grid.Column="2" BorderThickness="0,1,1,1">
+                    <ListViewItem Visibility="Collapsed"/>
+                    <ListViewItem Content="≧ ﹏ ≦"/>
+                    <ListViewItem Content="(;'༎ຶД༎ຶ`)"/>
+                    <ListViewItem Content="/(ㄒoㄒ)/~~"/>
+                    <ListViewItem Content="╥﹏╥..."/>
+                    <ListViewItem Content="〒▽〒"/>
+                </ListView>
+                <ListView Grid.Column="3" BorderThickness="0,1,1,1">
+                    <ListViewItem Visibility="Collapsed"/>
+                    <ListViewItem Content="(╬▔皿▔)╯"/>
+                    <ListViewItem Content="ヽ（≧□≦）ノ"/>
+                    <ListViewItem Content="┗|｀O′|┛"/>
+                    <ListViewItem Content="(ノ｀Д)ノ"/>
+                    <ListViewItem Content="(╬ﾟдﾟ)"/>
+                </ListView>
+                <ListView Grid.Column="4" BorderThickness="0,1,1,1">
+                    <ListViewItem Visibility="Collapsed"/>
+                    <ListViewItem Content="ε=( o｀ω′)ノ"/>
+                    <ListViewItem Content="(=ﾟωﾟ)="/>
+                    <ListViewItem Content="| ω・')"/>
+                    <ListViewItem Content="(〃∀〃)"/>
+                    <ListViewItem Content="(・ω・)"/>
+                </ListView>
             </Grid>
-            <Button Margin="0,0,15,15" VerticalAlignment="Bottom" HorizontalAlignment="Right" Height="30" Width="90" Content="Send" Click="Button_Click"/>
+            <Grid Grid.Row="2">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Border Grid.Row="0" HorizontalAlignment="Stretch" BorderBrush="#E8E8E8" BorderThickness="0,0,0,1">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                            <StackPanel.Resources>
+                                <Style TargetType="Button">
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#EEE"/>
+                                            <Setter Property="ToolTip" Value="本按钮创造于1919-11-4 5:14.81 Null太懒了，没有留下任何简介"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                    <Style.Setters>
+                                        <Setter Property="Padding" Value="10,3"/>
+                                        <Setter Property="Background" Value="{x:Null}"/>
+                                        <Setter Property="BorderBrush" Value="{x:Null}"/>
+                                    </Style.Setters>
+                                </Style>
+                            </StackPanel.Resources>
+                            <Button Content="Kaomoji"/>
+                            <Button Content="Picture"/>
+                            <Button Content="Attention"/>
+                            <Button Content="OnlineInfo"/>
+                            <Button Content="AdminTool"/>
+                            <Button Content="ServerInfo"/>
+                        </StackPanel>
+                    </Border>
+                    <TextBox Grid.Row="1" Text="{Binding SendText}" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" AllowDrop="True"
+                             TextWrapping="Wrap" Padding="3" BorderThickness="0" Background="Transparent" 
+                             AcceptsReturn="True" AutoWordSelection="True" BorderBrush="White" KeyDown="TextBox_KeyDown" RenderTransformOrigin="0.5,0.5">
+                    </TextBox>
+                </Grid>
+                <Button Margin="0,0,15,15" Background="Transparent" VerticalAlignment="Bottom" HorizontalAlignment="Right" Height="30" Width="90" Content="Send" Click="Button_Click"/>
+            </Grid>
+            <GridSplitter Grid.Row="2" Background="#EBEBEB" Height="1" HorizontalAlignment="Stretch" VerticalAlignment="Top"/>
         </Grid>
-        <GridSplitter Grid.Row="2" Background="#EBEBEB" Height="1" HorizontalAlignment="Stretch" VerticalAlignment="Top"/>
+        <Grid x:Name="Popup" Background="#9F000000" Visibility="Collapsed">
+            <Grid Background="White" HorizontalAlignment="Center" VerticalAlignment="Center" Width="400" Height="200">
+                <TextBlock Name="Msgbox" Margin="27,25,26,53"/>
+                <Button Name="btn2" Width="100" Height="25" Margin="290,165,10,10" Content="确定" TabIndex="114514" Click="btn2_Click"/>
+            </Grid>
+        </Grid>
     </Grid>
 </Page>

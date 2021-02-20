@@ -4,6 +4,7 @@ using Null.Library.ConsArgsParser;
 using Null.Library.EventedSocket;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -28,7 +29,7 @@ namespace TocTiny
         private static readonly List<string> AdminGuid = new List<string>();
         private static readonly List<User> UserList = new List<User>();
         private static string USERJSONPATH = "Users.json";
-        private static object lockobj=new object();
+        private static readonly object lockobj = new object();
         private class StartupArgs
         {
             public string PORT = "2020";           // port 
@@ -76,17 +77,31 @@ namespace TocTiny
 
         private static void DisplayHelpAndEnd()
         {
-            SafeWriteLine("TOC Tiny : Server program for TOC Tiny\n\n  TocTiny[-Port port][-Buffer bufferSize][-Backlog backlog][/? | / Help]\n\n    port: Port number to be listened.Default value is 2020.\n    bufferSize: Buffer size for receive data. Default value is 1024576(B)\n    backlog    : Maximum length of the pending connections queue.Default value is 50.\n");
+            SafeWriteLine("TOC Tiny : Server program for TOC Tiny\n" +
+                "  TocTiny[-Port port][-Buffer bufferSize][-Backlog backlog][/? | / Help]\n" +
+                "    port: Port number to be listened.Default value is 2020.\n" +
+                "    bufferSize: Buffer size for receive data. Default value is 1024576(B)\n" +
+                "    backlog    : Maximum length of the pending connections queue.Default value is 50.\n");
             Environment.Exit(0);
         }
 
+        private static bool IsFakePackage(TransPackage package)
+        {
+            return package.PackageType != 0 && CheckUserGuid(package.ClientGuid, package.Name);
+        }
+
+        private static bool CheckUserGuid(string GUID,string name)
+        {
+            if (GUID == ""||GUID == "Server" || name == "Server") { return false; };
+            return UserList.Any((usr) => (usr.Guid == GUID) && (usr.Name == name));
+        }
         private static void InitializeUser(string JsonPath)
         {
             if (File.Exists(JsonPath))
             {
                 StreamReader streamReader = new StreamReader(JsonPath);
                 JsonData jsonData = JsonSerializer.Parse(streamReader.ReadToEnd());
-                foreach(JsonData jsonData1 in jsonData)
+                foreach (JsonData jsonData1 in jsonData)
                 {
                     UserList.Add(JsonSerializer.ConvertToInstance<User>(jsonData1));
                 }
@@ -95,7 +110,7 @@ namespace TocTiny
             }
             else
             {
-                JsonData jsonData = new JsonData() { DataType = JsonDataType.Array ,content =new List<JsonData>() };
+                JsonData jsonData = new JsonData() { DataType = JsonDataType.Array, content = new List<JsonData>() };
                 foreach (User usr in UserList)
                 {
                     jsonData.Add(JsonSerializer.Create(usr));
@@ -131,8 +146,6 @@ namespace TocTiny
             {
                 PromptText = "\n>>> "
             };
-
-            SafeWriteLine($"Initilizing...");
             StartupArgs startupArgs = consArgs.ToObject<StartupArgs>();
 
             channelName = startupArgs.NAME;
@@ -162,7 +175,7 @@ namespace TocTiny
                 SafeWriteLine($"Argument out of range, an integer is required. Argument name: 'CInterval'.");
                 Environment.Exit(-1);
             }
-
+            
             nocolor = startupArgs.NOCOLOR;
             nocmd = startupArgs.NOCMD;
             USERJSONPATH = startupArgs.USERJSONPATH;
@@ -219,7 +232,7 @@ namespace TocTiny
             if (string.IsNullOrWhiteSpace(cmd)) { return; }
             if (cmd.StartsWith("/"))
             {
-                switch (cmd.ToLower().Substring(0,5))
+                switch (cmd.ToLower().Substring(0, 5))
                 {
                     case "/help":
 
@@ -319,13 +332,13 @@ namespace TocTiny
         }                   // 发送吸引注意力
         private static void Server_RecvedClientMsg(object sender, Socket socket, byte[] buffer, int size)
         {
-                string recvStr = Encoding.UTF8.GetString(buffer, 0, size);
-                JsonData[] recvJsons = JsonSerializer.ParseStream(recvStr);
-                foreach (JsonData recvJson in recvJsons)
-                {
-                    TransPackage recvPackage = JsonSerializer.ConvertToInstance<TransPackage>(recvJson);
-                    DealRecvPackage(recvPackage, ref socket, ref buffer, size);
-                }
+            string recvStr = Encoding.UTF8.GetString(buffer, 0, size);
+            JsonData[] recvJsons = JsonSerializer.ParseStream(recvStr);
+            foreach (JsonData recvJson in recvJsons)
+            {
+                TransPackage recvPackage = JsonSerializer.ConvertToInstance<TransPackage>(recvJson);
+                DealRecvPackage(recvPackage, ref socket, ref buffer, size);
+            }
         }        // 当收到客户端消息
         private static void Server_ClientDisconnected(object sender, Socket socket)
         {
@@ -336,7 +349,7 @@ namespace TocTiny
                 clients.Remove(socket);
             }
         }                              // 当客户端断开
-        private static void Server_ClientConnected(object sender,Socket socket)
+        private static void Server_ClientConnected(object sender, Socket socket)
         {
             SafeWriteLine($"News socket connected, address: {socket.RemoteEndPoint}");
 
@@ -366,162 +379,226 @@ namespace TocTiny
         {
             if (recvPackage.PackageType != ConstDef.HeartPackage)
             {
-                if (string.IsNullOrWhiteSpace(recvPackage.ClientGuid))
+                if (IsFakePackage(recvPackage))
                 {
-                    DealPackageUnlogin(recvPackage, socket);
+                    DealUnloginUser(recvPackage, socket);
                     return;
                 }
                 switch (recvPackage.PackageType)
                 {
-                    case ConstDef.NormalMessage:
-                        BoardcastData(buffer, size);
-                        AddMessageRecord(buffer, size);
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        SafeWriteLine($"{recvPackage.Name}: {recvPackage.Content}");
-                        break;
-                    case ConstDef.Verification:
-                        clientRecord[recvPackage.ClientGuid] = (recvPackage.Name, socket);
-                        BoardcastData(buffer, size);
-                        Console.ForegroundColor = ConsoleColor.Cyan;
-                        SafeWriteLine($"Verification: {recvPackage.Name} - {recvPackage.Content}");
-                        break;
-                    case ConstDef.ImageMessage:
-                        BoardcastData(buffer, size);
-                        AddMessageRecord(buffer, size);
-                        Console.ForegroundColor = ConsoleColor.Blue;
-                        SafeWriteLine($"Image: {recvPackage.Name} - Base string length: {recvPackage.Content.Length}");
-                        break;
-                    case ConstDef.DrawAttention:
-                        DrawAttention(recvPackage.Name, recvPackage.ClientGuid);
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-                        SafeWriteLine($"Draw Attention: Sender: {recvPackage.Name}");
-                        break;
                     case ConstDef.ChangeChannelName:
-                        socket.SendTOC(
-                            Encoding.UTF8.GetBytes(
-                                JsonSerializer.ConvertToText(
-                                    JsonSerializer.Create(new TransPackage()
-                                    {
-                                        Name = "Server",
-                                        Content = channelName,
-                                        ClientGuid = "Server",
-                                        PackageType = ConstDef.ChangeChannelName
-                                    }))));
-                        Console.ForegroundColor = ConsoleColor.DarkGray;
-                        SafeWriteLine($"Channel Name Req: Sender: {recvPackage.Name}");
+                        ChangeChannelName(recvPackage, socket);
                         break;
                     case ConstDef.ReportChannelOnline:
-                        socket.SendTOC(
-                            Encoding.UTF8.GetBytes(
-                                JsonSerializer.ConvertToText(
-                                    JsonSerializer.Create(new TransPackage()
-                                    {
-                                        Name = "Server",
-                                        Content = $"Online: {clients.Count}, Your IP Address: {((IPEndPoint)socket.RemoteEndPoint).Address}",
-                                        ClientGuid = "Server",
-                                        PackageType = ConstDef.ReportChannelOnline
-                                    }))));
-                        Console.ForegroundColor = ConsoleColor.DarkGray;
-                        SafeWriteLine($"Online Info Req: Sender: {recvPackage.Name}");
+                        ReportChannelOnline(recvPackage, socket);
                         break;
                     case ConstDef.AdminCommand:
-                        SafeWriteLine($"{recvPackage.Name} try to execute a command on this server.");
-                        if (!AdminGuid.Contains(recvPackage.ClientGuid))
-                        {
-                            socket.SendTOC(
-                                Encoding.UTF8.GetBytes(
-                                    JsonSerializer.ConvertToText(
-                                        JsonSerializer.Create(new TransPackage()
-                                        {
-                                            Name = "Server",
-                                            Content = $"You don't have right to execute command on remote server.",
-                                            ClientGuid = "Server",
-                                            PackageType = ConstDef.NormalMessage
-                                        }))));
-                        }
-                        else
-                        {
-                            DealCommand(recvPackage.Content);
-                            socket.SendTOC(
-                                Encoding.UTF8.GetBytes(
-                                    JsonSerializer.ConvertToText(
-                                        JsonSerializer.Create(new TransPackage()
-                                        {
-                                            Name = "Server",
-                                            Content = $"Command executed!",
-                                            ClientGuid = "Server",
-                                            PackageType = ConstDef.NormalMessage
-                                        }))));
-                            int count = 0;
-                            Socket socket1 = socket;
-                            bool p(string a)
-                            {
-                                count += 1;
-                                if (count == 2)
-                                {
-                                    SafeWriteHook -= p;
-                                }
-                                socket1.Send(
-                                Encoding.UTF8.GetBytes(
-                                    JsonSerializer.ConvertToText(
-                                        JsonSerializer.Create(new TransPackage()
-                                        {
-                                            Name = "Server",
-                                            Content = $"Return:{a}",
-                                            ClientGuid = "Server",
-                                            PackageType = ConstDef.NormalMessage
-                                        }))));
-                                return true;
-                            }
-                            SafeWriteHook += p;
-                        }
+                        DealAdminCommand(recvPackage, socket);
                         break;
                     case ConstDef.ReportTerminalOutput:
-                        SafeWriteLine($"{recvPackage.Name} try to hook terminal on this server.");
-                        if (!AdminGuid.Contains(recvPackage.ClientGuid))
-                        {
-                            socket.SendTOC(
-                                Encoding.UTF8.GetBytes(
-                                    JsonSerializer.ConvertToText(
-                                        JsonSerializer.Create(new TransPackage()
-                                        {
-                                            Name = "Server",
-                                            Content = $"You don't have right to hook terminal on remote server.",
-                                            ClientGuid = "Server",
-                                            PackageType = ConstDef.NormalMessage
-                                        }))));
-                        }
-                        else
-                        {
-                            int count = 0;
-                            int l = int.Parse(recvPackage.Content);
-                            Socket socket1 = socket;
-                            bool p(string a)
-                            {
-                                count += 1;
-                                socket1.SendTOC(
-                                Encoding.UTF8.GetBytes(
-                                    JsonSerializer.ConvertToText(
-                                        JsonSerializer.Create(new TransPackage()
-                                        {
-                                            Name = "Server",
-                                            Content = $"Return:{a}",
-                                            ClientGuid = "Server",
-                                            PackageType = ConstDef.NormalMessage
-                                        }))));
-                                return true;
-                            }
-                            SafeWriteHook += p;
-                        }
+                        ReportTerminalOutput(recvPackage, socket);
                         break;
                     default:
-                        SafeWriteLine($"Recieved data from {socket.RemoteEndPoint}, size: {size}, but cannot be processed.");
+                        DealNormalPackage(recvPackage, buffer, size);
                         break;
                 }
             }
         }      // 处理消息 (主函数
 
-        private static void DealPackageUnlogin(TransPackage recvPackage, Socket socket)
+        private static void DealNormalPackage(TransPackage recvPackage, byte[] buffer, int size)
+        {
+            BoardcastData(buffer, size);
+            AddMessageRecord(buffer, size);
+            ConsoleColor oldcolor = Console.ForegroundColor;
+            if (recvPackage.Content.Length > 250)
+            {
+                if (!nocolor) { Console.ForegroundColor = ConsoleColor.Red; }
+                SafeWriteLine($"{recvPackage.Name}: {new string(recvPackage.Content.Take(250).ToArray())}......(Length:{recvPackage.Content.Length})");
+                if (recvPackage.PackageType == ConstDef.ImageMessage)
+                {
+                    try
+                    {
+                        if (!nocolor)
+                        {
+                            Console.ForegroundColor = ConsoleColor.White;
+                        }
+                        SafeWriteLine($"{GetThumbnailChar((Bitmap)Image.FromStream(new MemoryStream(Convert.FromBase64String(recvPackage.Content))))}");
+                    }
+                    catch
+                    {
+                        SafeWriteLine("Cann't Get Thumbnail Image");
+                    }
+                }
+            }
+            else if (recvPackage.Content.Length > 100)
+            {
+                if (!nocolor) { Console.ForegroundColor = ConsoleColor.Green; }
+                SafeWriteLine($"{recvPackage.Name}: {recvPackage.Content}");
+            }
+            else
+            {
+                if (!nocolor) { Console.ForegroundColor = ConsoleColor.Blue; }
+                SafeWriteLine($"{recvPackage.Name}: {recvPackage.Content}");
+            }
+            Console.ForegroundColor = oldcolor;
+        }
+
+        private static void ChangeChannelName(TransPackage recvPackage, Socket socket)
+        {
+            socket.SendTOC(
+                Encoding.UTF8.GetBytes(
+                    JsonSerializer.ConvertToText(
+                        JsonSerializer.Create(new TransPackage()
+                        {
+                            Name = "Server",
+                            Content = channelName,
+                            ClientGuid = "Server",
+                            PackageType = ConstDef.ChangeChannelName
+                        }))));
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            SafeWriteLine($"Channel Name Req: Sender: {recvPackage.Name}");
+        }
+
+        private static void ReportChannelOnline(TransPackage recvPackage, Socket socket)
+        {
+            socket.SendTOC(
+                Encoding.UTF8.GetBytes(
+                    JsonSerializer.ConvertToText(
+                        JsonSerializer.Create(new TransPackage()
+                        {
+                            Name = "Server",
+                            Content = $"Online: {clients.Count}, Your IP Address: {((IPEndPoint)socket.RemoteEndPoint).Address}",
+                            ClientGuid = "Server",
+                            PackageType = ConstDef.ReportChannelOnline
+                        }))));
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            SafeWriteLine($"Online Info Req: Sender: {recvPackage.Name}");
+        }
+
+        private static void DealAdminCommand(TransPackage recvPackage, Socket socket)
+        {
+            SafeWriteLine($"{recvPackage.Name} try to execute a command on this server.");
+            if (!AdminGuid.Contains(recvPackage.ClientGuid))
+            {
+                socket.SendTOC(
+                    Encoding.UTF8.GetBytes(
+                        JsonSerializer.ConvertToText(
+                            JsonSerializer.Create(new TransPackage()
+                            {
+                                Name = "Server",
+                                Content = $"You don't have right to execute command on remote server.",
+                                ClientGuid = "Server",
+                                PackageType = ConstDef.NormalMessage
+                            }))));
+            }
+            else
+            {
+                DealCommand(recvPackage.Content);
+                socket.SendTOC(
+                    Encoding.UTF8.GetBytes(
+                        JsonSerializer.ConvertToText(
+                            JsonSerializer.Create(new TransPackage()
+                            {
+                                Name = "Server",
+                                Content = $"Command executed!",
+                                ClientGuid = "Server",
+                                PackageType = ConstDef.NormalMessage
+                            }))));
+                int count = 0;
+                Socket socket1 = socket;
+                bool p(string a)
+                {
+                    count += 1;
+                    if (count == 2)
+                    {
+                        SafeWriteHook -= p;
+                    }
+                    socket1.Send(
+                    Encoding.UTF8.GetBytes(
+                        JsonSerializer.ConvertToText(
+                            JsonSerializer.Create(new TransPackage()
+                            {
+                                Name = "Server",
+                                Content = $"Return:{a}",
+                                ClientGuid = "Server",
+                                PackageType = ConstDef.NormalMessage
+                            }))));
+                    return true;
+                }
+                SafeWriteHook += p;
+            }
+        }
+
+        private static void ReportTerminalOutput(TransPackage recvPackage, Socket socket)
+        {
+            SafeWriteLine($"{recvPackage.Name} try to hook terminal on this server.");
+            if (!AdminGuid.Contains(recvPackage.ClientGuid))
+            {
+                socket.SendTOC(
+                    Encoding.UTF8.GetBytes(
+                        JsonSerializer.ConvertToText(
+                            JsonSerializer.Create(new TransPackage()
+                            {
+                                Name = "Server",
+                                Content = $"You don't have right to hook terminal on remote server.",
+                                ClientGuid = "Server",
+                                PackageType = ConstDef.NormalMessage
+                            }))));
+            }
+            else
+            {
+                int count = 0;
+                int l = int.Parse(recvPackage.Content);
+                Socket socket1 = socket;
+                bool p(string a)
+                {
+                    count += 1;
+                    socket1.SendTOC(
+                    Encoding.UTF8.GetBytes(
+                        JsonSerializer.ConvertToText(
+                            JsonSerializer.Create(new TransPackage()
+                            {
+                                Name = "Server",
+                                Content = $"Return:{a}",
+                                ClientGuid = "Server",
+                                PackageType = ConstDef.NormalMessage
+                            }))));
+                    return true;
+                }
+                SafeWriteHook += p;
+            }
+        }
+
+        /// <summary>
+        /// 将图片转换为字符画
+        /// </summary>
+        /// <param name="bitmap">Bitmap类型的对象</param>
+        public static string GetThumbnailChar(Bitmap bitmap)
+        {
+            StringBuilder sb = new StringBuilder();
+            string replaceChar = "@*#$%XB0H?OC7>+v=~^:_-'`. ";
+            bitmap = (Bitmap)bitmap.GetThumbnailImage((int)(2 * bitmap.Width * (32.0f / bitmap.Height)), 32, null, IntPtr.Zero);
+            for (int i = 0; i < bitmap.Height; i += 1)
+            {
+                for (int j = 0; j < bitmap.Width; j += 1)
+                {
+                    //获取当前点的Color对象
+                    Color c = bitmap.GetPixel(j, i);
+                    //计算转化过灰度图之后的rgb值（套用已有的计算公式就行）
+                    int rgb = (int)(c.R * .3 + c.G * .59 + c.B * .11);
+                    //计算出replaceChar中要替换字符的index
+                    //所以根据当前灰度所占总rgb的比例(rgb值最大为255，为了防止超出索引界限所以/256.0)
+                    //（肯定是小于1的小数）乘以总共要替换字符的字符数，获取当前灰度程度在字符串中的复杂程度
+                    int index = (int)(rgb / 256.0 * replaceChar.Length);
+                    //追加进入sb
+                    sb.Append(replaceChar[index]);
+                }
+                //添加换行
+                sb.Append("\r\n");
+            }
+            return sb.ToString();
+        }
+        private static void DealUnloginUser(TransPackage recvPackage, Socket socket)
         {
             if (recvPackage.PackageType == ConstDef.NormalMessage)
             {
@@ -655,7 +732,7 @@ namespace TocTiny
                     JsonSerializer.ConvertToText(
                         JsonSerializer.Create(new TransPackage()
                         {
-                            Name = "Server",
+                            Name = "Server(AutoReplay)",
                             Content = $"Welcome!{recvPackage.Name}",
                             ClientGuid = "Server",
                             PackageType = ConstDef.NormalMessage
@@ -669,10 +746,10 @@ namespace TocTiny
                     JsonSerializer.ConvertToText(
                         JsonSerializer.Create(new TransPackage()
                         {
-                            Name = "Server",
+                            Name = "Server(AutoReplay)",
                             Content = $"Error:This user name existed.",
                             ClientGuid = "Server",
-                            PackageType = ConstDef.NormalMessage
+                            PackageType = ConstDef.Verification
                         }
                         )
                         )
@@ -687,24 +764,12 @@ namespace TocTiny
                         JsonSerializer.ConvertToText(
                             JsonSerializer.Create(new TransPackage()
                             {
-                                Name = "Server",
-                                Content = $"You must be logged in to send messages on the remote server.\r\n" +
-                                $"If you were using old TocTiny,\r\n" +
-                                $"you can try to send \"/login (password here)\"\r\n",
+                                Name = "Server(AutoReplay)",
+                                Content = $"You must be logged in to send messages on the remote server.",
                                 ClientGuid = "Server",
-                                PackageType = ConstDef.NormalMessage
+                                PackageType = ConstDef.Verification
                             }))));
         }
 
-        private static TransPackage CreateChangeChannelPackage(string channelName)
-        {
-            return new TransPackage()
-            {
-                Name = "Server",
-                Content = channelName,
-                ClientGuid = "Server",
-                PackageType = ConstDef.ChangeChannelName
-            };
-        }
     }
 }

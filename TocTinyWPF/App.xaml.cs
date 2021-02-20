@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Windows;
+﻿using System.Windows;
 
 namespace TocTinyWPF
 {
@@ -15,6 +10,15 @@ namespace TocTinyWPF
         public App()
         {
             InitializeComponent();
+        }
+
+        private void Application_NavigationFailed(object sender, System.Windows.Navigation.NavigationFailedEventArgs e)
+        {
+            if (!e.Handled)
+            {
+                MessageBox.Show(e.Exception.ToString());
+                Shutdown(e.Exception.HResult);
+            }
         }
     }
 }
