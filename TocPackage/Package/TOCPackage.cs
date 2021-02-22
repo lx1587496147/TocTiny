@@ -1,7 +1,12 @@
-﻿namespace TocTinyWPF.Package
+﻿using System.Net.Sockets;
+using System.Threading.Tasks;
+
+namespace TocTinyWPF.Package
 {
     internal enum PackageType
     {
+        Hello = 114514,
+        KeyExchange = 1919810,
         NormalMessage = 0b_0000000000000001,
         Verification = 0b_0000000000000010,
         Login = 0b_1101101011011101,
@@ -14,16 +19,16 @@
         ChangeChannelName = 0b_1000000000000010,
         ReportChannelOnline = 0b_1000000000000011
     }
-
     public class TOCPackage : TextPackage
     {
         public string Name { get; set; }
         public string Content { get; set; }
         public string ClientGuid { get; set; }
         public int PackageType { get; set; }
+
         public override string ToString()
         {
-            return System.Text.Json.JsonSerializer.Serialize(this,typeof(TOCPackage));
+            return System.Text.Json.JsonSerializer.Serialize(this, GetType());
         }
     }
 }

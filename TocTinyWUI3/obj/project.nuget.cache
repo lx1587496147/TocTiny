@@ -1,9 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "gNnZtjJ4h1aAYTkugvoyuI4GdrrcBiGzzu9+8h8LdGiUQcTqG2Oo/+WzYDo8pfbpl9o0ei+wwpQ1b1+x5mvKcw==",
+  "dgSpecHash": "PMPjBwBnUqzhSBLSyZ1h5h8NoGoEUdgIJQJzfIsoCiteFAEsBgZOPp/B1ufnZVI6nGkHHm3B7XSwBlYjANcB+g==",
   "success": true,
   "projectFilePath": "C:\\Users\\Administrator\\Source\\Repos\\lx1587496147\\TocTiny\\TocTinyWUI3\\TocTinyWUI3.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\Administrator\\.nuget\\packages\\microsoft.codeanalysis.analyzers\\3.0.0\\microsoft.codeanalysis.analyzers.3.0.0.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\microsoft.codeanalysis.common\\3.8.0\\microsoft.codeanalysis.common.3.8.0.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\microsoft.codeanalysis.csharp\\3.8.0\\microsoft.codeanalysis.csharp.3.8.0.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\microsoft.net.native.compiler\\2.2.1\\microsoft.net.native.compiler.2.2.1.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\microsoft.net.uwpcoreruntimesdk\\2.2.3\\microsoft.net.uwpcoreruntimesdk.2.2.3.nupkg.sha512",
     "C:\\Program Files (x86)\\Microsoft SDKs\\UWPNuGetPackages\\microsoft.netcore.platforms\\2.1.0\\microsoft.netcore.platforms.2.1.0.nupkg.sha512",
@@ -26,7 +29,13 @@
     "C:\\Users\\Administrator\\.nuget\\packages\\runtime.win10-x86.microsoft.net.native.compiler\\2.2.1\\runtime.win10-x86.microsoft.net.native.compiler.2.2.1.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\runtime.win10-x86.microsoft.net.native.sharedlibrary\\2.2.1\\runtime.win10-x86.microsoft.net.native.sharedlibrary.2.2.1.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\runtime.win10-x86.microsoft.net.uwpcoreruntimesdk\\2.2.3\\runtime.win10-x86.microsoft.net.uwpcoreruntimesdk.2.2.3.nupkg.sha512",
-    "C:\\Users\\Administrator\\.nuget\\packages\\runtime.win10-x86.microsoft.netcore.universalwindowsplatform\\6.2.3\\runtime.win10-x86.microsoft.netcore.universalwindowsplatform.6.2.3.nupkg.sha512"
+    "C:\\Users\\Administrator\\.nuget\\packages\\runtime.win10-x86.microsoft.netcore.universalwindowsplatform\\6.2.3\\runtime.win10-x86.microsoft.netcore.universalwindowsplatform.6.2.3.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\system.collections.immutable\\5.0.0\\system.collections.immutable.5.0.0.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\system.memory\\4.5.4\\system.memory.4.5.4.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\system.reflection.metadata\\5.0.0\\system.reflection.metadata.5.0.0.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\4.7.1\\system.runtime.compilerservices.unsafe.4.7.1.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\system.text.encoding.codepages\\4.5.1\\system.text.encoding.codepages.4.5.1.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\system.threading.tasks.extensions\\4.5.4\\system.threading.tasks.extensions.4.5.4.nupkg.sha512"
   ],
   "logs": []
 }

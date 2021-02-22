@@ -3,6 +3,7 @@ using System.Windows.Input;
 
 namespace TocTinyWPF.ViewModel
 {
+    [PropertyChanged.ImplementPropertyChanged]
     internal class LoginViewModel
     {
         public string NickName { get; set; } = "Null";

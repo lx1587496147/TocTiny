@@ -1,0 +1,10 @@
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyWPF\obj\Debug\TocTinyWPF.csprojAssemblyReference.cache
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyWPF\obj\Debug\MainWindow.g.cs
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyWPF\obj\Debug\View\ErrorPage.g.cs
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyWPF\obj\Debug\View\Login.g.cs
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyWPF\obj\Debug\View\MainChat.g.cs
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyWPF\obj\Debug\View\Msg.g.cs
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyWPF\obj\Debug\App.g.cs
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyWPF\obj\Debug\GeneratedInternalTypeHelper.g.cs
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyWPF\obj\Debug\TocTinyWPF_MarkupCompile.cache
+C:\Users\Administrator\Source\Repos\lx1587496147\TocTiny\TocTinyWPF\obj\Debug\TocTinyWPF_MarkupCompile.lref

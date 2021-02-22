@@ -29,7 +29,7 @@ namespace TocTinyWPF.Package
             { return null; }
         }
         /// <summary>
-        /// 包负载(应为TransportPackage)
+        /// 包负载
         /// </summary>
         public T Load { get; set; }
         /// <summary>

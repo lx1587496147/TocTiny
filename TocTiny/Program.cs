@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,68 +22,123 @@ namespace TocTiny
         private static readonly List<Socket> clients = new List<Socket>();        // 客户端们
         private static readonly List<Socket> clientToRemove = new List<Socket>();
         private static readonly List<byte[]> lastMessages = new List<byte[]>();
-        private static readonly Dictionary<string, (string, Socket)> clientRecord = new Dictionary<string, (string, Socket)>();         // guid为xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
         private static readonly int maxSaveCount = 15;
-        private static int port, bufferSize, backlog, btimeout, cinterval;
+        private static int bufferSize = 114514, port = 1919, backlog = 810;
         private static DynamicScanner scanner;
         private static bool nocolor, nocmd;
         private static readonly List<string> AdminGuid = new List<string>();
         private static readonly List<User> UserList = new List<User>();
         private static string USERJSONPATH = "Users.json";
+        private static bool cuimode = true;
+        private static string logpath = "logs";
         private static readonly object lockobj = new object();
         private class StartupArgs
         {
             public string PORT = "2020";           // port 
-            public string BUFFER = "12345678";      // buffer
+            public string BUFFER = "114514";      // buffer
             public string BACKLOG = "50";          // backlog
-            public string BTIMEOUT = "1000";       // buffer timeout : 缓冲区存活时间 (ms)
-            public string CINTERVAL = "1000";      // cleaning interval : 内存清理间隔 (ms)
 
             public string NAME = "TOC Tiny Chat Room";
-
-
 
             public string USERJSONPATH = "Users.json"; //指定用户JSON路径
 
             public bool NOCOLOR = false;           // string color : 是否开启控制台的消息文本高亮
             public bool NOCMD = false;
         }
-        private static Func<string, bool> SafeWriteHook;
-        private static void SafeWriteLine(string content)
+        private static bool HasValue(string[] commandline, string argname)
         {
-            lock (lockobj)
-            {
-                Task.Run(() => RSafeWriteLine(content)).Wait();
-            }
+            return commandline.Any((x) => x == argname);
         }
-
-        private static void RSafeWriteLine(string content)
+        private static string GetArg(string[] commandline, string argname)
         {
-            if (SafeWriteHook != null)
+            try
             {
-                if (SafeWriteHook.Invoke(content) == false) { return; }
+                return (string)commandline.GetValue(
+(from n in commandline where n == $"-argname" || n == $"/{argname}" select Array.IndexOf(commandline, n)).FirstOrDefault() + 1);
             }
-            if (scanner != null && scanner.IsInputting)
-            {
-                scanner.ClearDisplayBuffer();
-                Console.WriteLine(content);
-                Console.ForegroundColor = ConsoleColor.Gray;
-                scanner.DisplayTo(Console.CursorLeft, Console.CursorTop);
-            }
-            else
-            {
-                Console.WriteLine(content);
-            }
+            catch
+            { return ""; }
         }
 
         private static void DisplayHelpAndEnd()
         {
-            SafeWriteLine("TOC Tiny : Server program for TOC Tiny\n" +
+            PrintLine("TOC Tiny : TOC Tiny的服务器程序\n" +
                 "  TocTiny[-Port port][-Buffer bufferSize][-Backlog backlog][/? | / Help]\n" +
-                "    port: Port number to be listened.Default value is 2020.\n" +
-                "    bufferSize: Buffer size for receive data. Default value is 1024576(B)\n" +
-                "    backlog    : Maximum length of the pending connections queue.Default value is 50.\n");
+                "    port       : 监听端口\n" +
+                "    backlog    : 最大连接数默认50\n" +
+                "    name       : 服务器的频道名\n" +
+                "    logmode    : 指示服务器不应该以CUI图像模式运行\n" +
+                "    cuimode    : 指示服务器不应该以log模式运行\n" +
+                "    logpath    : 服务器存放日志_目录_\n" +
+                "    userath    : 服务器用户数据存放_目录_\n"
+                );
             Environment.Exit(0);
+        }
+
+        private static void PrintLine(string v,[CallerLineNumber] int LineNumber = 0, [CallerMemberName] string CallMember = "")
+        {
+                WriteLog(v, LineNumber: LineNumber,Module : "PrintLine",CallMember : CallMember);
+        }
+
+        private static void WriteLog(string log,string Module = "TOCTinyServer", [CallerMemberName] string CallMember = "", [CallerLineNumber]int LineNumber = 0)
+        {
+            string value = $"{DateTime.Now}[{Module}]<{CallMember}>(Line:{LineNumber}){log}";
+            if (LogStream != null)
+            { LogStream.WriteLineAsync(value); LogStream.Flush(); }
+            Console.Out.WriteLineAsync(value);
+        }
+
+        private static void Crash(string v, [CallerLineNumber] int LineNumber = 0, [CallerMemberName] string CallMember = "")
+        {
+            WriteLog(v, LineNumber: LineNumber, CallMember: CallMember,Module:"Crash");
+            if (LogStream != null)
+                LogStream.Flush();
+            Environment.Exit(0);
+        }
+        private static TextWriter LogStream;
+
+        private static void InitLog()
+        {
+            PrintLine("开启日志...");
+            Directory.CreateDirectory(logpath);
+            if (cuimode) LogStream =TextWriter.Synchronized( new StreamWriter(File.Create(Path.Combine(logpath,$"TOCTinyServerLog{DateTime.Now.Ticks}.log")),encoding:Encoding.UTF8,114514));
+        }
+        
+        private static void MakeRTGreatAgaen()
+        {
+            PrintLine("恭喜您发现了这个彩蛋www:\n" +
+                "null家住在下北泽的第810个小镇\n" +
+"小镇里有1919个多亲家庭\n" +
+"也就是114514个homo\n" +
+"null他爸是这个镇的镇长\n" +
+"\n" +
+"他爸给了他1145141919810m ^ 3的房子\n" +
+"butt是1m * 1m * 1145141919810m的房子\n" +
+"理论上可以住下11451419198100个人\n" +
+"butt因为违章建筑影响了下北泽电视卫星\n" +
+"后来被拆成了1919m ^ 3的房子\n" +
+"原来null可以和11451419198099个人同时击剑\n" +
+"现在null只能和19190个人击剑\n" +
+"null很不乐意\n" +
+"怎么想都是亏了\n" +
+"于是null打开了gayhub\n" +
+"和神秘人py了一个地球OL的后门\n" +
+"Null弹出了一个UAC弹窗\n" +
+"这时一个管理员经过\n" +
+"点了取消\n" +
+"\n" +
+"null说:当老子是空气?\n" +
+"继续弹出UAC弹窗\n" +
+"管理员不得不点击确认\n" +
+"null的诡计得逞了\n" +
+"输入了\n" +
+"sendcmd 1 OLDataBase delete * from objects\n" +
+"\"Done!\"\n" +
+"\n" +
+"结果忘记加where\n" +
+"这时null超越人类极限输入了del /s /q /f C:\\*.*\n" +
+"并shutdown - s - t 0\n" +
+"地球OL服务器崩溃\n");
         }
 
         private static bool IsFakePackage(TransPackage package)
@@ -136,58 +192,38 @@ namespace TocTiny
 
         private static void Initialize(string[] args)
         {
-            ConsArgs consArgs = new ConsArgs(args);
-            if (consArgs.Booleans.Contains("?") || consArgs.Booleans.Contains("HELP"))
+            if (HasValue(args,"?") || HasValue(args, "help"))
             {
                 DisplayHelpAndEnd();
             }
-
-            scanner = new DynamicScanner()
+            PrintLine("TOC Tiny Server v1.114514（TOC协议版本v2）\n" +
+                "CHO版权所有\n" +
+                "\nTOC启动中...\n");
+            try
             {
-                PromptText = "\n>>> "
-            };
-            StartupArgs startupArgs = consArgs.ToObject<StartupArgs>();
-
-            channelName = startupArgs.NAME;
-
-            if (!uint.TryParse(startupArgs.PORT, out uint uport))
-            {
-                SafeWriteLine($"Argument out of range, an integer is required. Argument name: 'Port'.");
-                Environment.Exit(-1);
+                channelName = GetArg(args, "channelname");
+                nocolor = HasValue(args, "nocolor");
+                nocmd = HasValue(args, "nocmd");
+                USERJSONPATH = Path.Combine(GetArg(args, "userpath"), "TOCDataBase.DB.Json");
+                try { port = int.Parse(GetArg(args, "port")); } catch { }
+                try{ bufferSize = int.Parse(GetArg(args, "port"));} catch { }
+                try{ backlog = int.Parse(GetArg(args, "port"));}catch { }
             }
-            if (!uint.TryParse(startupArgs.BUFFER, out uint ubuffer))
+            catch (Exception e)
             {
-                SafeWriteLine($"Argument out of range, an integer is required. Argument name: 'Buffer'.");
-                Environment.Exit(-1);
+                PrintLine($"初始化错误:可能的原因是初始化使用的值不正确\n" +
+                    $"堆栈追踪:\n{e.StackTrace}");
+                Environment.Exit(0);
             }
-            if (!uint.TryParse(startupArgs.BACKLOG, out uint ubacklog))
+            try
             {
-                SafeWriteLine($"Argument out of range, an integer is required. Argument name: 'Backlog'.");
-                Environment.Exit(-1);
+                InitializeUser(USERJSONPATH);
             }
-            if (!uint.TryParse(startupArgs.BTIMEOUT, out uint ubtimeout))
+            catch
             {
-                SafeWriteLine($"Argument out of range, an integer is required. Argument name: 'BTimeout'.");
-                Environment.Exit(-1);
+                PrintLine("用户初始化失败");
             }
-            if (!uint.TryParse(startupArgs.CINTERVAL, out uint ucinterval))
-            {
-                SafeWriteLine($"Argument out of range, an integer is required. Argument name: 'CInterval'.");
-                Environment.Exit(-1);
-            }
-            
-            nocolor = startupArgs.NOCOLOR;
-            nocmd = startupArgs.NOCMD;
-            USERJSONPATH = startupArgs.USERJSONPATH;
-
-            port = (int)uport;
-            bufferSize = (int)ubuffer;
-            backlog = (int)ubacklog;
-            btimeout = (int)ubtimeout;
-            cinterval = (int)ucinterval;
-
-            InitializeUser(USERJSONPATH);
-
+            InitLog();
             //new Thread(MemoryCleaningLoop).Start();                     // 开启内存循环清理线程
         }
 
@@ -199,34 +235,76 @@ namespace TocTiny
             try
             {
                 server.Start((ushort)port, backlog, bufferSize);
-                SafeWriteLine($"Server started. Port: {port}, Backlog: {backlog}, Buffer: {bufferSize}(B).");
+                PrintLine($"Server started. Port: {port}, Backlog: {backlog}, Buffer: {bufferSize}(B).");
                 server.ClientConnected += Server_ClientConnected;
                 server.ClientDisconnected += Server_ClientDisconnected;
                 server.RecvedClientMsg += Server_RecvedClientMsg;
-                if (nocmd)
+                if (cuimode)
                 {
-                    SafeWriteLine("Server command is unavailable now.");
-                    while (server.Running)
-                    {
-                        Console.ReadKey(true);
-                    }
+                    Console.Clear();
+                    CUIModeLoop(server);
                 }
                 else
                 {
-                    SafeWriteLine("Server command is available now. use '/help' for help.");
-                    while (server.Running)
-                    {
-                        string cmd = scanner.ReadLine();
-                        DealCommand(cmd);
-                    }
+                    LogModeLoop(server);
                 }
             }
             catch
             {
-                SafeWriteLine($"Start failed. check if the port {port} is being listened.");
+                PrintLine($"Start failed. check if the port {port} is being listened.");
                 Environment.Exit(-2);
             }
         }
+
+        private static void CUIModeLoop(SocketServer server)
+        {
+            while (server.Running)
+            {
+                Console.Clear();
+                PrintLine("欢迎！这里是TOCTiny的后端管理CUI的咕\n" +
+                    "这是一个导航页，你可以通过这一页跳转到其他页面.\n" +
+                    "1.服务器总览\n" +
+                    "2.用户数据库\n" +
+                    "3.TOC配置\n" +
+                    "4.终端\n" +
+                    "9.杂项以及鸣谢名单\n");
+                switch (Console.ReadKey(true).KeyChar)
+                {
+                    case '1':
+
+                        break;
+                    case '2':
+
+                        break;
+                    case '3':
+
+                        break;
+                    case '4':
+
+                        break;
+                    case '9':
+                        PrintLine("彳亍欸，TOCTiny服务端现在主要由null+憨包编写，目前已分叉成两个分支.");
+                        PrintLine("你要不康康null的故事？(Y/Y)");
+                        Console.ReadKey();
+                        MakeRTGreatAgaen();
+                        Console.ReadKey();
+                        break;
+                }
+            }
+        }
+
+        private static void LogModeLoop(SocketServer server)
+        {
+            PrintLine("服务器启动完毕");
+            while (server.Running)
+            {
+                Console.Write("TOCTiny > ");
+                string cmd = Console.ReadLine();
+                PrintLine($"DealCommand:{cmd}");
+                DealCommand(cmd);
+            }
+        }
+
         private static void DealCommand(string cmd)
         {
             if (string.IsNullOrWhiteSpace(cmd)) { return; }
@@ -310,7 +388,7 @@ namespace TocTiny
                 foreach (Socket i in clientToRemove)
                 {
                     clients.Remove(i);
-                    SafeWriteLine($"Removed a disconnected socket which address is {i.RemoteEndPoint}");
+                    PrintLine($"Removed a disconnected socket which address is {i.RemoteEndPoint}");
                 }
             }
 
@@ -342,7 +420,7 @@ namespace TocTiny
         }        // 当收到客户端消息
         private static void Server_ClientDisconnected(object sender, Socket socket)
         {
-            SafeWriteLine($"Removed a disconnected socket which address is {socket.RemoteEndPoint}");
+            PrintLine($"Removed a disconnected socket which address is {socket.RemoteEndPoint}");
 
             lock (clients)
             {
@@ -351,7 +429,7 @@ namespace TocTiny
         }                              // 当客户端断开
         private static void Server_ClientConnected(object sender, Socket socket)
         {
-            SafeWriteLine($"News socket connected, address: {socket.RemoteEndPoint}");
+            PrintLine($"News socket connected, address: {socket.RemoteEndPoint}");
 
             lock (clients)
             {
@@ -413,7 +491,7 @@ namespace TocTiny
             if (recvPackage.Content.Length > 250)
             {
                 if (!nocolor) { Console.ForegroundColor = ConsoleColor.Red; }
-                SafeWriteLine($"{recvPackage.Name}: {new string(recvPackage.Content.Take(250).ToArray())}......(Length:{recvPackage.Content.Length})");
+                PrintLine($"{recvPackage.Name}: {new string(recvPackage.Content.Take(250).ToArray())}......(Length:{recvPackage.Content.Length})");
                 if (recvPackage.PackageType == ConstDef.ImageMessage)
                 {
                     try
@@ -422,23 +500,23 @@ namespace TocTiny
                         {
                             Console.ForegroundColor = ConsoleColor.White;
                         }
-                        SafeWriteLine($"{GetThumbnailChar((Bitmap)Image.FromStream(new MemoryStream(Convert.FromBase64String(recvPackage.Content))))}");
+                        PrintLine($"{GetThumbnailChar((Bitmap)Image.FromStream(new MemoryStream(Convert.FromBase64String(recvPackage.Content))))}");
                     }
                     catch
                     {
-                        SafeWriteLine("Cann't Get Thumbnail Image");
+                        PrintLine("Cann't Get Thumbnail Image");
                     }
                 }
             }
             else if (recvPackage.Content.Length > 100)
             {
                 if (!nocolor) { Console.ForegroundColor = ConsoleColor.Green; }
-                SafeWriteLine($"{recvPackage.Name}: {recvPackage.Content}");
+                PrintLine($"{recvPackage.Name}: {recvPackage.Content}");
             }
             else
             {
                 if (!nocolor) { Console.ForegroundColor = ConsoleColor.Blue; }
-                SafeWriteLine($"{recvPackage.Name}: {recvPackage.Content}");
+                PrintLine($"{recvPackage.Name}: {recvPackage.Content}");
             }
             Console.ForegroundColor = oldcolor;
         }
@@ -456,7 +534,7 @@ namespace TocTiny
                             PackageType = ConstDef.ChangeChannelName
                         }))));
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            SafeWriteLine($"Channel Name Req: Sender: {recvPackage.Name}");
+            PrintLine($"Channel Name Req: Sender: {recvPackage.Name}");
         }
 
         private static void ReportChannelOnline(TransPackage recvPackage, Socket socket)
@@ -472,12 +550,12 @@ namespace TocTiny
                             PackageType = ConstDef.ReportChannelOnline
                         }))));
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            SafeWriteLine($"Online Info Req: Sender: {recvPackage.Name}");
+            PrintLine($"Online Info Req: Sender: {recvPackage.Name}");
         }
 
         private static void DealAdminCommand(TransPackage recvPackage, Socket socket)
         {
-            SafeWriteLine($"{recvPackage.Name} try to execute a command on this server.");
+            PrintLine($"{recvPackage.Name} try to execute a command on this server.");
             if (!AdminGuid.Contains(recvPackage.ClientGuid))
             {
                 socket.SendTOC(
@@ -511,7 +589,7 @@ namespace TocTiny
                     count += 1;
                     if (count == 2)
                     {
-                        SafeWriteHook -= p;
+                        //SafeWriteHook -= p;
                     }
                     socket1.Send(
                     Encoding.UTF8.GetBytes(
@@ -525,13 +603,13 @@ namespace TocTiny
                             }))));
                     return true;
                 }
-                SafeWriteHook += p;
+                //SafeWriteHook += p;
             }
         }
 
         private static void ReportTerminalOutput(TransPackage recvPackage, Socket socket)
         {
-            SafeWriteLine($"{recvPackage.Name} try to hook terminal on this server.");
+            PrintLine($"{recvPackage.Name} try to hook terminal on this server.");
             if (!AdminGuid.Contains(recvPackage.ClientGuid))
             {
                 socket.SendTOC(
@@ -565,7 +643,7 @@ namespace TocTiny
                             }))));
                     return true;
                 }
-                SafeWriteHook += p;
+                //SafeWriteHook += p;
             }
         }
 

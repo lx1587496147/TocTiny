@@ -45,5 +45,6 @@
     <Pkgruntime_win10-arm_Microsoft_Net_Native_Compiler Condition=" '$(Pkgruntime_win10-arm_Microsoft_Net_Native_Compiler)' == '' ">C:\Users\Administrator\.nuget\packages\runtime.win10-arm.microsoft.net.native.compiler\2.2.1</Pkgruntime_win10-arm_Microsoft_Net_Native_Compiler>
     <PkgMicrosoft_Net_UWPCoreRuntimeSdk Condition=" '$(PkgMicrosoft_Net_UWPCoreRuntimeSdk)' == '' ">C:\Users\Administrator\.nuget\packages\microsoft.net.uwpcoreruntimesdk\2.2.3</PkgMicrosoft_Net_UWPCoreRuntimeSdk>
     <PkgMicrosoft_Net_Native_Compiler Condition=" '$(PkgMicrosoft_Net_Native_Compiler)' == '' ">C:\Users\Administrator\.nuget\packages\microsoft.net.native.compiler\2.2.1</PkgMicrosoft_Net_Native_Compiler>
+    <PkgMicrosoft_CodeAnalysis_Analyzers Condition=" '$(PkgMicrosoft_CodeAnalysis_Analyzers)' == '' ">C:\Users\Administrator\.nuget\packages\microsoft.codeanalysis.analyzers\3.0.0</PkgMicrosoft_CodeAnalysis_Analyzers>
   </PropertyGroup>
 </Project>

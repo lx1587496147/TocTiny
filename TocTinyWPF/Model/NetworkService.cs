@@ -43,7 +43,7 @@ namespace TocTinyWPF.Model
                     try
                     {
                         TOCPackage package = TOCPackage.CreateFromStream(nwkstm);
-                        package = package ?? new TOCPackage();
+                        if (package == null) continue;
                         PackageReviced.Invoke(this, package);
                     }
                     catch

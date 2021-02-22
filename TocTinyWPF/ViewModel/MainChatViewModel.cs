@@ -3,6 +3,7 @@ using System.Windows.Controls;
 
 namespace TocTinyWPF.ViewModel
 {
+    [PropertyChanged.ImplementPropertyChanged]
     internal class MainChatViewModel
     {
         public IPAddress RemoteServer { get; set; } = IPAddress.Loopback;
